@@ -32,10 +32,15 @@ class InboxConsumer(Consumer):
             LOG.error('Something went wrong: {0}'.format(error))
 
 
-if __name__ == '__main__':
+def main():
+    """Run the Inbox consumer."""
     CONSUMER = InboxConsumer(port=os.environ.get('MQ_PORT', 5670),
                              username=os.environ.get('MQ_USER', 'lega'),
                              password=os.environ.get('MQ_PASSWORD'),
                              queue='v1.files.completed',
                              vhost=os.environ.get('MQ_VHOST', 'lega'))
     CONSUMER.start()
+
+
+if __name__ == '__main__':
+    main()

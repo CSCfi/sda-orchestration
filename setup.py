@@ -12,7 +12,7 @@ setup(name='sda_orchestrator',
       author_email='',
       description='something',
       long_description="",
-      packages=['sda_orchestrator', 'sda_orchestrator/utils'],
+      packages=['sda_orchestrator', 'sda_orchestrator/utils', 'sda_orchestrator/templates'],
       # If any package contains *.json, include them:
       package_data={'': ['*.json', '*.ini']},
       entry_points={
