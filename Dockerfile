@@ -24,6 +24,8 @@ COPY --from=BUILD /usr/local/bin/sdainbox /usr/local/bin/
 
 COPY --from=BUILD /usr/local/bin/sdacomplete /usr/local/bin/
 
+COPY --from=BUILD /usr/local/bin/webapp /usr/local/bin/
+
 ADD supervisor.conf /etc/
 
-ENTRYPOINT ["supervisord", "--configuration", "/etc/supervisord.conf"]
+ENTRYPOINT ["supervisord", "--configuration", "/etc/supervisor.conf"]
