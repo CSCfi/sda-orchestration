@@ -18,7 +18,7 @@ LABEL org.label-schema.schema-version="1.0"
 
 RUN apk add --no-cache --update libressl postgresql-libs openssh-client supervisor
 
-COPY --from=BUILD /usr/local/lib/python3.7/ usr/local/lib/python3.6/
+COPY --from=BUILD /usr/local/lib/python3.7/ usr/local/lib/python3.7/
 
 COPY --from=BUILD /usr/local/bin/sdainbox /usr/local/bin/
 

@@ -58,7 +58,8 @@ class CompleteConsumer(Consumer):
 
 def main():
     """Run the Complete consumer."""
-    CONSUMER = CompleteConsumer(port=os.environ.get('BROKER_PORT', 5670),
+    CONSUMER = CompleteConsumer(hostname=str(os.environ.get('BROKER_HOST')),
+                                port=int(os.environ.get('BROKER_PORT', 5670)),
                                 username=os.environ.get('BROKER_USER', 'lega'),
                                 password=os.environ.get('BROKER_PASSWORD'),
                                 queue='v1.files.completed',

@@ -34,10 +34,11 @@ class InboxConsumer(Consumer):
 
 def main():
     """Run the Inbox consumer."""
-    CONSUMER = InboxConsumer(port=os.environ.get('BROKER_PORT', 5670),
+    CONSUMER = InboxConsumer(hostname=str(os.environ.get('BROKER_HOST')),
+                             port=int(os.environ.get('BROKER_PORT', 5670)),
                              username=os.environ.get('BROKER_USER', 'lega'),
                              password=os.environ.get('BROKER_PASSWORD'),
-                             queue='v1.files.completed',
+                             queue='v1.files.inbox',
                              vhost=os.environ.get('BROKER_VHOST', 'lega'))
     CONSUMER.start()
 
