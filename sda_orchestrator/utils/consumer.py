@@ -26,9 +26,9 @@ class Consumer:
         self.connection = None
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.check_hostname = False
-        cacertfile = Path(os.environ.get('ROOT_CA', ''))
-        certfile = Path(os.environ.get('CERT_FILE', ''))
-        keyfile = Path(os.environ.get('CERT_KEY', ''))
+        cacertfile = Path("/tls/root.ca.crt")
+        certfile = Path("/tls/cert.ca.crt")
+        keyfile = Path("/tls/cert.ca.key")
         context.verify_mode = ssl.CERT_NONE
         # Require server verification
         if cacertfile.exists():

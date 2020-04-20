@@ -58,11 +58,11 @@ class CompleteConsumer(Consumer):
 
 def main():
     """Run the Complete consumer."""
-    CONSUMER = CompleteConsumer(port=os.environ.get('MQ_PORT', 5670),
-                                username=os.environ.get('MQ_USER', 'lega'),
-                                password=os.environ.get('MQ_PASSWORD'),
+    CONSUMER = CompleteConsumer(port=os.environ.get('BROKER_PORT', 5670),
+                                username=os.environ.get('BROKER_USER', 'lega'),
+                                password=os.environ.get('BROKER_PASSWORD'),
                                 queue='v1.files.completed',
-                                vhost=os.environ.get('MQ_VHOST', 'lega'))
+                                vhost=os.environ.get('BROKER_VHOST', 'lega'))
     CONSUMER.start()
 
 
