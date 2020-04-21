@@ -16,6 +16,7 @@ spec:
       containers:
       - name: sda-orchestrate
         image: "cscfi/sda-orchestrate:latest"
+        imagePullPolicy: Always
         env:
           - name: DB_LEGA_OUT_PASSWORD
             valueFrom:
@@ -36,10 +37,10 @@ spec:
               secretKeyRef:
                 name: orchestrate-secret
                 key: mqPassword
+          - name: BROKER_USER
+            value: "lega"
           - name: BROKER_PORT
-            value: "5670"
-          - name: BROKER_USERNAME
-            value: ""
+            value: "5671"
           - name: BROKER_VHOST
             value: "lega"
         resources:
@@ -55,7 +56,11 @@ spec:
         volumeMounts:
           - name: tls
             mountPath: /tls
+          - name: tmp
+            mountPath: "/tmp"
       volumes:
+        - name: tmp
+          emptyDir: {}
         - name: tls
           secret:
             secretName: orhestrate-certs
@@ -91,7 +96,7 @@ spec:
       - path: /
         backend:
           serviceName: sda-orchestrate
-          servicePort: 80
+          servicePort: 5050
 ---
 apiVersion: v1
 data:
