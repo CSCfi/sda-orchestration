@@ -2,6 +2,7 @@ import psycopg2
 from .logger import LOG
 from time import sleep
 import os
+from pathlib import Path
 
 
 def map_file2dataset(user, filepath, file_checksum, dataset_id):
@@ -10,7 +11,10 @@ def map_file2dataset(user, filepath, file_checksum, dataset_id):
                             password=os.environ.get('DB_LEGA_IN_PASSWORD'),
                             database='lega',
                             host=os.environ.get('DB_HOST', 'localhost'),
-                            sslmode='require')
+                            sslmode='require',
+                            sslrootcert=Path("/tls/certs/root.ca.crt"),
+                            sslcert=Path("/tls/certs/cert.ca.crt"),
+                            sslkey=Path("/tls/certs/cert.ca.key"))
     with conn.cursor() as cursor:
         cursor.execute('SELECT status FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s',
                        {"user": user,
@@ -47,7 +51,10 @@ def map_file2dataset(user, filepath, file_checksum, dataset_id):
                              password=os.environ.get('DB_LEGA_OUT_PASSWORD'),
                              database='lega',
                              host=os.environ.get('DB_HOST', 'localhost'),
-                             sslmode='require')
+                             sslmode='require',
+                             sslrootcert=Path("/tls/certs/root.ca.crt"),
+                             sslcert=Path("/tls/certs/cert.ca.crt"),
+                             sslkey=Path("/tls/certs/cert.ca.key"))
 
     with conn2.cursor() as cursor:
         cursor.execute('''SELECT id FROM local_ega_ebi.filedataset ORDER BY id DESC LIMIT 1''')
@@ -70,7 +77,10 @@ def retrieve_file2dataset():
                             password=os.environ.get('DB_LEGA_OUT_PASSWORD'),
                             database='lega',
                             host=os.environ.get('DB_HOST', 'localhost'),
-                            sslmode='require')
+                            sslmode='require',
+                            sslrootcert=Path("/tls/certs/root.ca.crt"),
+                            sslcert=Path("/tls/certs/cert.ca.crt"),
+                            sslkey=Path("/tls/certs/cert.ca.key"))
     with conn.cursor() as cursor:
         cursor.execute('SELECT file_id, dataset_id FROM local_ega_ebi.file_dataset')
         matches = cursor.fetchall()
