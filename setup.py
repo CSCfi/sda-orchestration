@@ -14,7 +14,7 @@ setup(name='sda_orchestrator',
       long_description="",
       packages=['sda_orchestrator', 'sda_orchestrator/utils', 'sda_orchestrator/templates'],
       # If any package contains *.json, include them:
-      package_data={'': ['*.json', '*.ini']},
+      package_data={'': ['*.html']},
       entry_points={
           'console_scripts': [
               'sdainbox=sda_orchestrator.inbox_consume:main',
