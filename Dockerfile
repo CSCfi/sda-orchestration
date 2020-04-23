@@ -28,4 +28,9 @@ COPY --from=BUILD /usr/local/bin/webapp /usr/local/bin/
 
 ADD supervisor.conf /etc/
 
+RUN addgroup -g 1000 sda && \
+    adduser -D -u 1000 -G sda sda
+
+USER 1000
+
 ENTRYPOINT ["supervisord", "--configuration", "/etc/supervisor.conf"]
