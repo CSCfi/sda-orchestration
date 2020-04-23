@@ -13,10 +13,28 @@ spec:
       labels:
         app: sda-orchestrate
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+      - name: tls-init
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args: ["/bin/cp /tls-certs/* /tls/ && chown 1000:1000 /tls/* && chmod 0400 /tls/*"]
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /tls-certs
+        - name: tls
+          mountPath: /tls
       containers:
       - name: sda-orchestrate
         image: "cscfi/sda-orchestrate:latest"
         imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
         env:
           - name: DB_LEGA_OUT_PASSWORD
             valueFrom:
@@ -55,15 +73,19 @@ spec:
             containerPort: 5050
         volumeMounts:
           - name: tls
-            mountPath: /tls
+            mountPath: /tls/certs
           - name: tmp
             mountPath: "/tmp"
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: tls
+        - name: tls-certs
           secret:
             secretName: orhestrate-certs
+        - name: tls
+          emptyDir:
+            medium: Memory
+            sizeLimit: 10Mi
 ---
 apiVersion: v1
 kind: Service
