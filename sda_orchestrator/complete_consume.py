@@ -44,7 +44,7 @@ class CompleteConsumer(Consumer):
             # is the urn:default:<username>
             # otherwise we take the root directory and construct the path
             # urn:dir:<root_dir>
-            if len(file_path_parts) < 2:
+            if len(file_path_parts) <= 2:
                 dataset = f'urn:default:{cmp_msg["user"]}'
             else:
                 dataset = f'urn:dir:{file_path_parts[1]}'
