@@ -21,8 +21,9 @@ class InboxConsumer(Consumer):
             # Create the files message.
             # we keep the encrypted_checksum but it can also be missing
             channel = self.connection.channel()
-            content = {"user": inbx_msg["user"], "filepath": inbx_msg["filepath"].replace(f'/ega/inbox/{inbx_msg["user"]}', ''),
-                       "encrypted_checksum": inbx_msg["encrypted_checksum"]}
+            content = {"user": inbx_msg["user"], "filepath": inbx_msg["filepath"].replace(f'/ega/inbox/{inbx_msg["user"]}', '')}
+            if "encrypted_checksums" in inbx_msg:
+                content["encrypted_checksums"] = inbx_msg["encrypted_checksums"]
             sent = Message.create(channel, json.dumps(content), properties)
 
             sent.publish('files', exchange='localega.v1')
