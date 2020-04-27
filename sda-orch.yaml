@@ -119,6 +119,10 @@ spec:
         backend:
           serviceName: sda-orchestrate
           servicePort: 5050
+  tls:
+    - hosts:
+      - example.com
+      secretName: sda-orch-expose
 ---
 apiVersion: v1
 data:
