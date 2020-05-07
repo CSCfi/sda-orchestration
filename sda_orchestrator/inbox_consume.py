@@ -3,6 +3,7 @@ from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
 import os
+from pathlib import Path
 
 
 class InboxConsumer(Consumer):
@@ -17,7 +18,10 @@ class InboxConsumer(Consumer):
                 'headers': {},
                 'correlation_id': message.correlation_id
             }
-
+            # we check if this is a path with a suffix or a name
+            test_path = Path(inbx_msg["filepath"])
+            if test_path.suffix == '' or test_path.name in ['', '.', '..']:
+                raise FileNotFoundError
             # Create the files message.
             # we keep the encrypted_checksum but it can also be missing
             channel = self.connection.channel()
