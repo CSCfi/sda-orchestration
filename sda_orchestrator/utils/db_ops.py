@@ -82,7 +82,7 @@ def retrieve_file2dataset():
                             sslcert=Path("/tls/certs/cert.ca.crt"),
                             sslkey=Path("/tls/certs/cert.ca.key"))
     with conn.cursor() as cursor:
-        cursor.execute('SELECT file_id, dataset_id FROM local_ega_ebi.file_dataset')
+        cursor.execute("SELECT file_id, dataset_id FROM local_ega_ebi.file_dataset WHERE file_id is NOT NULL")
         matches = cursor.fetchall()
     conn.close()
 
