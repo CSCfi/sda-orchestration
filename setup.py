@@ -18,6 +18,7 @@ setup(name='sda_orchestrator',
       entry_points={
           'console_scripts': [
               'sdainbox=sda_orchestrator.inbox_consume:main',
+              'sdaverified=sda_orchestrator.verified_consume:main',
               'sdacomplete=sda_orchestrator.complete_consume:main',
               'webapp=sda_orchestrator.app:main',
           ]
