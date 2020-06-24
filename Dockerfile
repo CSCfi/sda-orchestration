@@ -3,13 +3,13 @@ FROM python:3.7-alpine3.10 as BUILD
 RUN apk add --no-cache git postgresql-libs postgresql-dev gcc musl-dev libffi-dev make gnupg && \
     rm -rf /var/cache/apk/*
 
-COPY requirements.txt /root/sdaauto/requirements.txt
-COPY sda_orchestrator /root/sdaauto/sda_orchestrator
-COPY setup.py /root/sdaauto
+COPY requirements.txt /root/sdaorch/requirements.txt
+COPY sda_orchestrator /root/sdaorch/sda_orchestrator
+COPY setup.py /root/sdaorch
 
 RUN pip install --upgrade pip && \
-    pip install -r /root/sdaauto/requirements.txt && \
-    pip install /root/sdaauto
+    pip install -r /root/sdaorch/requirements.txt && \
+    pip install /root/sdaorch
 
 FROM python:3.7-alpine3.10
 
@@ -23,6 +23,8 @@ COPY --from=BUILD /usr/local/lib/python3.7/ usr/local/lib/python3.7/
 COPY --from=BUILD /usr/local/bin/sdainbox /usr/local/bin/
 
 COPY --from=BUILD /usr/local/bin/sdacomplete /usr/local/bin/
+
+COPY --from=BUILD /usr/local/bin/sdaverified /usr/local/bin/
 
 COPY --from=BUILD /usr/local/bin/webapp /usr/local/bin/
 
