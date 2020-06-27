@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 
-def map_file2dataset(user, filepath, file_checksum, dataset_id):
+def map_file2dataset(user, filepath, decrypted_checksum, dataset_id):
     """Assign file to dataset, for dataset driven permissions."""
     conn = psycopg2.connect(user='lega_in',
                             password=os.environ.get('DB_LEGA_IN_PASSWORD'),
@@ -38,10 +38,10 @@ def map_file2dataset(user, filepath, file_checksum, dataset_id):
 
     with conn.cursor() as cursor:
         cursor.execute('SELECT id FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s'
-                       ' AND inbox_file_checksum = %(file_checksum)s',
+                       ' AND archive_file_checksum = %(decrypted_checksum)s',
                        {"user": user,
                         "filepath": filepath,
-                        "file_checksum": file_checksum})
+                        "decrypted_checksum": decrypted_checksum})
         files = cursor.fetchall()
     conn.close()
 
