@@ -32,7 +32,8 @@ class CompleteConsumer(Consumer):
             sent = Message.create(channel, json.dumps(content), properties)
             checksum_data = list(filter(lambda x: x['type'] == 'sha256', cmp_msg['decrypted_checksums']))
             decrypted_checksum = checksum_data[0]['value']
-            sent.publish('stableIDs', exchange='localega.v1')
+            sent.publish(os.environ.get('STABLEIDS_QUEUE', 'stableIDs'),
+                         exchange=os.environ.get('BROKER_EXCHANGE', 'localega'))
 
             channel.close()
             LOG.info(f'Sent the message to files queue to trigger ingestion for file {cmp_msg["filepath"]} \
@@ -65,7 +66,7 @@ def main():
                                 port=int(os.environ.get('BROKER_PORT', 5670)),
                                 username=os.environ.get('BROKER_USER', 'lega'),
                                 password=os.environ.get('BROKER_PASSWORD'),
-                                queue='v1.files.verified',
+                                queue=os.environ.get('VERIFIED_QUEUE', 'files.verified'),
                                 vhost=os.environ.get('BROKER_VHOST', 'lega'))
     CONSUMER.start()
 

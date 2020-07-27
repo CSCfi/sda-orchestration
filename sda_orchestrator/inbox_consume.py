@@ -43,7 +43,7 @@ def main():
                              port=int(os.environ.get('BROKER_PORT', 5670)),
                              username=os.environ.get('BROKER_USER', 'lega'),
                              password=os.environ.get('BROKER_PASSWORD'),
-                             queue='v1.files.inbox',
+                             queue=os.environ.get('INBOX_QUEUE', 'files.inbox'),
                              vhost=os.environ.get('BROKER_VHOST', 'lega'))
     CONSUMER.start()
 
