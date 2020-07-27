@@ -30,7 +30,8 @@ class InboxConsumer(Consumer):
                 content["encrypted_checksums"] = inbx_msg["encrypted_checksums"]
             sent = Message.create(channel, json.dumps(content), properties)
 
-            sent.publish('files', exchange='localega.v1')
+            sent.publish(os.environ.get('FILES_QUEUE', 'files'),
+                         exchange=os.environ.get('BROKER_EXCHANGE', 'localega'))
             channel.close()
             LOG.info(f'Sent the message to files queue to trigger ingestion for filepath: {inbx_msg["filepath"]}.')
         except Exception as error:
