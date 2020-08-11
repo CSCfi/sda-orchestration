@@ -2,15 +2,15 @@ from setuptools import setup
 
 
 setup(name='sda_orchestrator',
-      version='0.0.1',
+      version='0.1.0',
       url='',
       project_urls={
           'Source': '',
       },
       license='Apache 2.0',
-      author='CSC Developers',
+      author='NeIC System Developers',
       author_email='',
-      description='something',
+      description='SDA orchestrator',
       long_description="",
       packages=['sda_orchestrator', 'sda_orchestrator/utils', 'sda_orchestrator/templates'],
       # If any package contains *.json, include them:
@@ -29,7 +29,7 @@ setup(name='sda_orchestrator',
           #   3 - Alpha
           #   4 - Beta
           #   5 - Production/Stable
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
 
           # Indicate who your project is intended for
           'Intended Audience :: Developers',
