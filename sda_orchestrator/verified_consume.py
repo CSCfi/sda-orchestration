@@ -57,7 +57,7 @@ class CompleteConsumer(Consumer):
             if len(file_path_parts) < 2:
                 dataset = f'urn:default:{cmp_msg["user"]}'
             else:
-                dataset = f"urn:dir:{file_path_parts[1]}"
+                dataset = f"urn:dir:{file_path_parts[0]}"
 
             map_file2dataset(cmp_msg["user"], cmp_msg["filepath"], decrypted_checksum, dataset)
 
