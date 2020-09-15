@@ -2,19 +2,22 @@ import time
 from amqpstorm import Connection, AMQPError
 from .logger import LOG
 import ssl
-import os
 from pathlib import Path
 
 
 class Consumer:
     """CEGA message consumer."""
 
-    def __init__(self, hostname='localhost',
-                 username='guest', password=None,
-                 port=5671,
-                 queue='base.queue',
-                 max_retries=None,
-                 vhost='/'):
+    def __init__(
+        self,
+        hostname="localhost",
+        username="guest",
+        password=None,
+        port=5671,
+        queue="base.queue",
+        max_retries=None,
+        vhost="/",
+    ):
         """Consumer init function."""
         self.hostname = hostname
         self.username = username
@@ -37,9 +40,7 @@ class Consumer:
         # If client verification is required
         if certfile.exists():
             context.load_cert_chain(str(certfile), keyfile=str(keyfile))
-        self.ssl_context = {'context': context,
-                            'server_hostname': None,
-                            'check_hostname': False}
+        self.ssl_context = {"context": context, "server_hostname": None, "check_hostname": False}
 
     def create_connection(self):
         """Create a connection.
@@ -50,12 +51,19 @@ class Consumer:
         while True:
             attempts += 1
             try:
-                self.connection = Connection(self.hostname, self.username, self.password, port=self.port,
-                                             ssl=True, ssl_options=self.ssl_context, virtual_host=self.vhost)
-                LOG.info('Established connection with AMQP server {0}'.format(self.connection))
+                self.connection = Connection(
+                    self.hostname,
+                    self.username,
+                    self.password,
+                    port=self.port,
+                    ssl=True,
+                    ssl_options=self.ssl_context,
+                    virtual_host=self.vhost,
+                )
+                LOG.info("Established connection with AMQP server {0}".format(self.connection))
                 break
             except AMQPError as error:
-                LOG.error('Something went wrong: {0}'.format(error))
+                LOG.error("Something went wrong: {0}".format(error))
                 if self.max_retries and attempts > self.max_retries:
                     break
                 time.sleep(min(attempts * 2, 30))
@@ -74,12 +82,12 @@ class Consumer:
                 channel = self.connection.channel()
                 # channel.queue.declare(self.queue)
                 channel.basic.consume(self, self.queue, no_ack=False)
-                LOG.info('Connected to queue {0}'.format(self.queue))
+                LOG.info("Connected to queue {0}".format(self.queue))
                 channel.start_consuming(to_tuple=False)
                 if not channel.consumer_tags:
                     channel.close()
             except AMQPError as error:
-                LOG.error('Something went wrong: {0}'.format(error))
+                LOG.error("Something went wrong: {0}".format(error))
                 self.create_connection()
             except KeyboardInterrupt:
                 self.connection.close()
@@ -94,7 +102,7 @@ class Consumer:
         try:
             self.handle_message(message)
         except Exception as error:
-            LOG.error('Something went wrong: {0}'.format(error))
+            LOG.error("Something went wrong: {0}".format(error))
             message.reject(requeue=False)
         else:
             message.ack()
