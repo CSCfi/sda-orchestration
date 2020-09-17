@@ -1,7 +1,8 @@
 """Message Broker Consumer class."""
 
 import time
-from amqpstorm import Connection, AMQPError
+from typing import Any
+from amqpstorm import Connection, AMQPError, Message
 from .logger import LOG
 import ssl
 from pathlib import Path
@@ -12,14 +13,14 @@ class Consumer:
 
     def __init__(
         self,
-        hostname="localhost",
-        username="guest",
-        password=None,
-        port=5671,
-        queue="base.queue",
-        max_retries=None,
-        vhost="/",
-    ):
+        hostname: str = "localhost",
+        username: str = "guest",
+        password: Any[None, str] = None,
+        port: int = 5671,
+        queue: str = "base.queue",
+        max_retries: Any[None, int] = None,
+        vhost: str = "/",
+    ) -> None:
         """Consumer init function."""
         self.hostname = hostname
         self.username = username
@@ -44,7 +45,7 @@ class Consumer:
             context.load_cert_chain(str(certfile), keyfile=str(keyfile))
         self.ssl_context = {"context": context, "server_hostname": None, "check_hostname": False}
 
-    def create_connection(self):
+    def create_connection(self) -> None:
         """Create a connection.
 
         :return:
@@ -72,7 +73,7 @@ class Consumer:
             except KeyboardInterrupt:
                 break
 
-    def start(self):
+    def start(self) -> None:
         """Start the Consumer.
 
         :return:
@@ -81,8 +82,7 @@ class Consumer:
             self.create_connection()
         while True:
             try:
-                channel = self.connection.channel()
-                # channel.queue.declare(self.queue)
+                channel = self.connection.channel()  # type: ignore
                 channel.basic.consume(self, self.queue, no_ack=False)
                 LOG.info("Connected to queue {0}".format(self.queue))
                 channel.start_consuming(to_tuple=False)
@@ -92,14 +92,14 @@ class Consumer:
                 LOG.error("Something went wrong: {0}".format(error))
                 self.create_connection()
             except KeyboardInterrupt:
-                self.connection.close()
+                self.connection.close()  # type: ignore
                 break
 
-    def handle_message(self, message):
+    def handle_message(self, message: Message) -> None:
         """Handle message."""
         pass
 
-    def __call__(self, message):
+    def __call__(self, message: Message) -> None:
         """Process the message body."""
         try:
             self.handle_message(message)

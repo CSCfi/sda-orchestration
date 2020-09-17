@@ -1,5 +1,6 @@
 """Message Broker complete step consumer."""
 import json
+from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
 import os
@@ -8,7 +9,7 @@ import os
 class CompleteConsumer(Consumer):
     """Complete Consumer class."""
 
-    def handle_message(self, message):
+    def handle_message(self, message: Message) -> None:
         """Handle message."""
         try:
             cmp_msg = json.loads(message.body)
@@ -19,7 +20,7 @@ class CompleteConsumer(Consumer):
             LOG.error("Something went wrong: {0}".format(error))
 
 
-def main():
+def main() -> None:
     """Run the Complete consumer."""
     CONSUMER = CompleteConsumer(
         hostname=str(os.environ.get("BROKER_HOST")),

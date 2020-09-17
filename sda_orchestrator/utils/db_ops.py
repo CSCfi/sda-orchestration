@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 
-def map_file2dataset(user, filepath, decrypted_checksum, dataset_id):
+def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_id: str) -> None:
     """Assign file to dataset, for dataset driven permissions."""
     conn = psycopg2.connect(
         user=os.environ.get("DB_IN_USER", "lega_in"),
@@ -70,7 +70,8 @@ def map_file2dataset(user, filepath, decrypted_checksum, dataset_id):
     with conn2.cursor() as cursor:
         for f in files:
             cursor.execute(
-                "INSERT INTO local_ega_ebi.filedataset(id, file_id, dataset_stable_id) VALUES(%(last_index)s, %(file_id)s, %(dataset_id)s)",
+                """INSERT INTO local_ega_ebi.filedataset(id, file_id, dataset_stable_id)
+                VALUES(%(last_index)s, %(file_id)s, %(dataset_id)s)""",
                 {
                     "last_index": last_index + 1 if last_index is not None else 1,
                     "file_id": f[0],
@@ -81,23 +82,3 @@ def map_file2dataset(user, filepath, decrypted_checksum, dataset_id):
             LOG.debug(f"Mapped ID: {f[0]} to Dataset: {dataset_id}")
             conn2.commit()
     conn2.close()
-
-
-def retrieve_file2dataset():
-    """Assign file to dataset, for dataset driven permissions."""
-    conn = psycopg2.connect(
-        user=os.environ.get("DB_OUT_USER", "lega_out"),
-        password=os.environ.get("DB_OUT_PASSWORD"),
-        database=os.environ.get("DB_NAME", "lega"),
-        host=os.environ.get("DB_HOST", "localhost"),
-        sslmode="require",
-        sslrootcert=Path("/tls/certs/root.ca.crt"),
-        sslcert=Path("/tls/certs/cert.ca.crt"),
-        sslkey=Path("/tls/certs/cert.ca.key"),
-    )
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT file_id, dataset_id FROM local_ega_ebi.file_dataset WHERE file_id is NOT NULL")
-        matches = cursor.fetchall()
-    conn.close()
-
-    return matches

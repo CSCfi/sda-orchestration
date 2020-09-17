@@ -14,7 +14,7 @@ from pathlib import Path
 class VerifyConsumer(Consumer):
     """Verify Consumer class."""
 
-    def handle_message(self, message):
+    def handle_message(self, message: Message) -> None:
         """Handle message."""
         try:
             cmp_msg = json.loads(message.body)
@@ -26,7 +26,7 @@ class VerifyConsumer(Consumer):
             }
 
             # Create the message.
-            channel = self.connection.channel()
+            channel = self.connection.channel()  # type: ignore
             stableID = "EGAF" + "".join(secrets.choice(string.digits) for i in range(16))
             content = {
                 "user": cmp_msg["user"],
@@ -68,7 +68,7 @@ class VerifyConsumer(Consumer):
             LOG.error("Something went wrong: {0}".format(error))
 
 
-def main():
+def main() -> None:
     """Run the Verify consumer."""
     CONSUMER = VerifyConsumer(
         hostname=str(os.environ.get("BROKER_HOST")),
