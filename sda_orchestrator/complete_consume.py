@@ -1,3 +1,4 @@
+"""Message Broker complete step consumer."""
 import json
 from .utils.consumer import Consumer
 from .utils.logger import LOG
@@ -5,7 +6,7 @@ import os
 
 
 class CompleteConsumer(Consumer):
-    """."""
+    """Complete Consumer class."""
 
     def handle_message(self, message):
         """Handle message."""

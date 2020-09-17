@@ -1,15 +1,18 @@
+"""Settings for building package."""
+
 from setuptools import setup
+from sda_orchestrator import __author__, __title__, __version__
 
 
 setup(
-    name="sda_orchestrator",
-    version="0.1.0",
+    name=__title__,
+    version=__version__,
     url="",
     project_urls={
         "Source": "",
     },
     license="Apache 2.0",
-    author="NeIC System Developers",
+    author=__author__,
     author_email="",
     description="SDA orchestrator",
     long_description="",

@@ -1,3 +1,5 @@
+"""Message Broker Consumer class."""
+
 import time
 from amqpstorm import Connection, AMQPError
 from .logger import LOG

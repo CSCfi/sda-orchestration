@@ -1,3 +1,4 @@
+"""Message Broker inbox step consumer."""
 import json
 from amqpstorm import Message
 from .utils.consumer import Consumer
@@ -7,7 +8,7 @@ from pathlib import Path
 
 
 class InboxConsumer(Consumer):
-    """."""
+    """Inbox Consumer class."""
 
     def handle_message(self, message):
         """Handle message."""

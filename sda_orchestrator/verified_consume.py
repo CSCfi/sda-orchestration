@@ -1,3 +1,4 @@
+"""Message Broker verify step consumer."""
 import json
 from amqpstorm import Message
 from .utils.consumer import Consumer
@@ -10,8 +11,8 @@ from time import sleep
 from pathlib import Path
 
 
-class CompleteConsumer(Consumer):
-    """."""
+class VerifyConsumer(Consumer):
+    """Verify Consumer class."""
 
     def handle_message(self, message):
         """Handle message."""
@@ -68,8 +69,8 @@ class CompleteConsumer(Consumer):
 
 
 def main():
-    """Run the Complete consumer."""
-    CONSUMER = CompleteConsumer(
+    """Run the Verify consumer."""
+    CONSUMER = VerifyConsumer(
         hostname=str(os.environ.get("BROKER_HOST")),
         port=int(os.environ.get("BROKER_PORT", 5670)),
         username=os.environ.get("BROKER_USER", "lega"),
