@@ -3,12 +3,8 @@ import json
 from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
-from .utils.db_ops import map_file2dataset
-import secrets
-import string
 import os
-from time import sleep
-from pathlib import Path
+from .utils.id_ops import generate_accession_id, map_dataset_file_id
 
 
 class VerifyConsumer(Consumer):
@@ -27,12 +23,12 @@ class VerifyConsumer(Consumer):
 
             # Create the message.
             channel = self.connection.channel()  # type: ignore
-            stableID = "EGAF" + "".join(secrets.choice(string.digits) for i in range(16))
+            accessionID = generate_accession_id()
             content = {
                 "user": cmp_msg["user"],
                 "filepath": cmp_msg["filepath"],
                 "decrypted_checksums": cmp_msg["decrypted_checksums"],
-                "accession_id": stableID,
+                "accession_id": accessionID,
             }
             sent = Message.create(channel, json.dumps(content), properties)
             checksum_data = list(filter(lambda x: x["type"] == "sha256", cmp_msg["decrypted_checksums"]))
@@ -47,22 +43,7 @@ class VerifyConsumer(Consumer):
                      with checksum {decrypted_checksum}.'
             )
 
-            sleep(20)
-            file_path = Path(cmp_msg["filepath"])
-            file_path_parts = file_path.parts
-            dataset = ""
-            # if a file it is submited in the root directory the dataset
-            # is the urn:default:<username>
-            # otherwise we take the root directory and construct the path
-            # urn:dir:<root_dir>
-            if len(file_path_parts) < 2:
-                dataset = f'urn:default:{cmp_msg["user"]}'
-            else:
-                dataset = f"urn:dir:{file_path_parts[0]}"
-
-            map_file2dataset(cmp_msg["user"], cmp_msg["filepath"], decrypted_checksum, dataset)
-
-            LOG.info(f'filepath: {cmp_msg["decrypted_checksums"]} mapped stableID {stableID} and to dataset {dataset}.')
+            map_dataset_file_id(cmp_msg, decrypted_checksum, accessionID)
 
         except Exception as error:
             LOG.error("Something went wrong: {0}".format(error))
