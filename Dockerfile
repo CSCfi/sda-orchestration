@@ -26,8 +26,6 @@ COPY --from=BUILD /usr/local/bin/sdacomplete /usr/local/bin/
 
 COPY --from=BUILD /usr/local/bin/sdaverified /usr/local/bin/
 
-COPY --from=BUILD /usr/local/bin/webapp /usr/local/bin/
-
 ADD supervisor.conf /etc/
 
 RUN addgroup -g 1000 sda && \
