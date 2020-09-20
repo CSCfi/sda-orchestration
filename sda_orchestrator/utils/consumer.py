@@ -1,7 +1,7 @@
 """Message Broker Consumer class."""
 
 import time
-from typing import Any
+from typing import Union
 from amqpstorm import Connection, AMQPError, Message
 from .logger import LOG
 import ssl
@@ -15,10 +15,10 @@ class Consumer:
         self,
         hostname: str = "localhost",
         username: str = "guest",
-        password: Any[None, str] = None,
+        password: Union[None, str] = None,
         port: int = 5671,
         queue: str = "base.queue",
-        max_retries: Any[None, int] = None,
+        max_retries: Union[None, int] = None,
         vhost: str = "/",
     ) -> None:
         """Consumer init function."""
