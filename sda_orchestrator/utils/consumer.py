@@ -6,6 +6,7 @@ from amqpstorm import Connection, AMQPError, Message
 from .logger import LOG
 import ssl
 from pathlib import Path
+import os
 
 
 class Consumer:
@@ -32,9 +33,9 @@ class Consumer:
         self.connection = None
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.check_hostname = False
-        cacertfile = Path("/tls/certs/root.ca.crt")
-        certfile = Path("/tls/certs/cert.ca.crt")
-        keyfile = Path("/tls/certs/cert.ca.key")
+        cacertfile = Path(f"{os.environ.get('SSL_CACERT', '/tls/certs')}/ca.crt")
+        certfile = Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs')}/orch.crt")
+        keyfile = Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs')}/orch.key")
         context.verify_mode = ssl.CERT_NONE
         # Require server verification
         if cacertfile.exists():
@@ -59,7 +60,7 @@ class Consumer:
                     self.username,
                     self.password,
                     port=self.port,
-                    ssl=True,
+                    ssl=bool(os.environ.get("BROKER_SSL", True)),
                     ssl_options=self.ssl_context,
                     virtual_host=self.vhost,
                 )

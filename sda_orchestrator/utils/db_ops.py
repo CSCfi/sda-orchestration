@@ -24,9 +24,9 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
         host=os.environ.get("DB_HOST", "localhost"),
         sslmode=os.environ.get("DB_SSLMODE", "require"),
         port=os.environ.get("DB_PORT", 5432),
-        sslrootcert=Path("/tls/certs/root.ca.crt"),
-        sslcert=Path("/tls/certs/cert.ca.crt"),
-        sslkey=Path("/tls/certs/cert.ca.key"),
+        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs')}/ca.crt"),
+        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs')}/orch.crt"),
+        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs')}/orch.key"),
     )
     with conn.cursor() as cursor:
         cursor.execute(
@@ -68,9 +68,9 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
         host=os.environ.get("DB_HOST", "localhost"),
         sslmode=os.environ.get("DB_SSLMODE", "require"),
         port=os.environ.get("DB_PORT", 5432),
-        sslrootcert=Path("/tls/certs/root.ca.crt"),
-        sslcert=Path("/tls/certs/cert.ca.crt"),
-        sslkey=Path("/tls/certs/cert.ca.key"),
+        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs')}/ca.crt"),
+        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs')}/orch.crt"),
+        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs')}/orch.key"),
     )
 
     with conn2.cursor() as cursor:
