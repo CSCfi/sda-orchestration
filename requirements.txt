@@ -1,5 +1,2 @@
 psycopg2
 amqpstorm
-jinja2
-aiohttp_jinja2
-aiohttp

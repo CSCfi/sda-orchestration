@@ -40,7 +40,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.7",
     ],
-    install_requires=["asyncpg", "psycopg2", "amqpstorm", "aiohttp-jinja2", "jinja2", "aiohttp"],
+    install_requires=["psycopg2", "amqpstorm"],
     extras_require={
         "test": ["coverage", "coveralls", "pytest", "pytest-cov", "tox"],
     },
