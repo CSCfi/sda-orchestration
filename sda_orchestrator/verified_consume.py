@@ -39,7 +39,7 @@ class VerifyConsumer(Consumer):
 
             channel.close()
             LOG.info(
-                f'Sent the message to files queue to trigger ingestion for file {cmp_msg["filepath"]} \
+                f'Sent the message to stabled IDs queue to get accession ID for file {cmp_msg["filepath"]} \
                      with checksum {decrypted_checksum}.'
             )
 
