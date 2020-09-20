@@ -7,7 +7,16 @@ from pathlib import Path
 
 
 def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_id: str) -> None:
-    """Assign file to dataset, for dataset driven permissions."""
+    """Assign file to dataset, for dataset driven permissions.
+
+    We establish 2 connections to db one to check the file has been marked READY or DISABLED.
+    If the file is in neither of this statuses after verify that means we need to wait for
+    accession ID
+    ERROR status should have occured sooner.
+
+    After this we get all the files matching a user, path and checksum.
+    We map in the Data Out table the accession ID to a dataset ID.
+    """
     conn = psycopg2.connect(
         user=os.environ.get("DB_IN_USER", "lega_in"),
         password=os.environ.get("DB_IN_PASSWORD"),
@@ -24,19 +33,19 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
             {"user": user, "filepath": filepath},
         )
         files = cursor.fetchall()
-        # wait for file satus to be ready
+        # wait for file status to be ready or disabled
         sleep_time = 2
         num_retries = 5
         for x in range(0, num_retries):
             try:
                 for f in files:
                     if f[0] != "READY" and f[0] != "DISABLED":
-                        LOG.info(f"trying {f[0]}")
+                        LOG.debug(f"Waiting to status to be COMPLETED or DISABLED {f[0]}")
                         raise Exception
             except Exception as str_error:
                 if str_error:
-                    sleep(sleep_time)  # wait before trying to fetch the data again
-                    sleep_time *= 2  # Implement your backoff algorithm here i.e. exponential backoff
+                    sleep(sleep_time)
+                    sleep_time *= 2
                 else:
                     break
 
@@ -50,7 +59,7 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     conn.close()
 
     last_index = None
-    # table in data out requires a different user, thus also a different connection
+    # table out data out requires a different user, thus also a different connection
     conn2 = psycopg2.connect(
         user=os.environ.get("DB_OUT_USER", "lega_out"),
         password=os.environ.get("DB_OUT_PASSWORD"),
@@ -79,6 +88,6 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
                 },
             )
             last_index += 1
-            LOG.debug(f"Mapped ID: {f[0]} to Dataset: {dataset_id}")
+            LOG.info(f"Mapped Accession ID: {f[0]} to Dataset: {dataset_id}")
             conn2.commit()
     conn2.close()
