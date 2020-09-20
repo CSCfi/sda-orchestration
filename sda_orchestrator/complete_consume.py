@@ -14,7 +14,7 @@ class CompleteConsumer(Consumer):
         try:
             cmp_msg = json.loads(message.body)
 
-            LOG.info(f"completed message recived: {cmp_msg} .")
+            LOG.info(f"Completed message received: {cmp_msg} .")
 
         except Exception as error:
             LOG.error("Something went wrong: {0}".format(error))
