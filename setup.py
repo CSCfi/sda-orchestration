@@ -16,7 +16,7 @@ setup(
     author_email="",
     description="SDA orchestrator",
     long_description="",
-    packages=["sda_orchestrator", "sda_orchestrator/utils", "sda_orchestrator/templates"],
+    packages=["sda_orchestrator", "sda_orchestrator/utils"],
     # If any package contains *.json, include them:
     package_data={"": ["*.html"]},
     entry_points={
@@ -41,4 +41,7 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     install_requires=["asyncpg", "psycopg2", "amqpstorm", "aiohttp-jinja2", "jinja2", "aiohttp"],
+    extras_require={
+        "test": ["coverage", "coveralls", "pytest", "pytest-cov", "tox"],
+    },
 )
