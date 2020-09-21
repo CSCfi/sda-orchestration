@@ -24,7 +24,9 @@ class InboxConsumer(Consumer):
             channel = self.connection.channel()  # type: ignore
             content = {
                 "user": inbx_msg["user"],
-                "filepath": inbx_msg["filepath"].replace(f'/ega/inbox/{inbx_msg["user"]}', ""),
+                "filepath": inbx_msg["filepath"].replace(
+                    f'{os.environ.get("INBOX_LOCATION", "/ega/inbox/")}{inbx_msg["user"]}', ""
+                ),
             }
             if "encrypted_checksums" in inbx_msg:
                 content["encrypted_checksums"] = inbx_msg["encrypted_checksums"]
