@@ -7,6 +7,7 @@ from .logger import LOG
 import ssl
 from pathlib import Path
 import os
+from distutils.util import strtobool
 
 
 class Consumer:
@@ -31,6 +32,7 @@ class Consumer:
         self.vhost = vhost
         self.max_retries = max_retries
         self.connection = None
+        self.ssl = bool(strtobool(os.environ.get("BROKER_SSL", "True")))
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.check_hostname = False
         cacertfile = Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}")
@@ -60,7 +62,7 @@ class Consumer:
                     self.username,
                     self.password,
                     port=self.port,
-                    ssl=bool(os.environ.get("BROKER_SSL", True)),
+                    ssl=self.ssl,
                     ssl_options=self.ssl_context,
                     virtual_host=self.vhost,
                 )
