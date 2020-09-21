@@ -3,8 +3,7 @@
 from pathlib import Path
 from .db_ops import map_file2dataset
 from .logger import LOG
-import secrets
-import string
+from uuid import uuid4
 
 
 def map_dataset_file_id(msg: dict, decrypted_checksum: str, accessionID: str) -> None:
@@ -31,5 +30,5 @@ def map_dataset_file_id(msg: dict, decrypted_checksum: str, accessionID: str) ->
 
 def generate_accession_id() -> str:
     """Generate Stable ID."""
-    accessionID = "SDAF" + "".join(secrets.choice(string.digits) for i in range(16))
+    accessionID = uuid4().urn
     return accessionID
