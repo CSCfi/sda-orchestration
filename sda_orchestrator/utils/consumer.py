@@ -33,9 +33,9 @@ class Consumer:
         self.connection = None
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.check_hostname = False
-        cacertfile = Path(f"{os.environ.get('SSL_CACERT', '/tls/certs')}/ca.crt")
-        certfile = Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs')}/orch.crt")
-        keyfile = Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs')}/orch.key")
+        cacertfile = Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}")
+        certfile = Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}")
+        keyfile = Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}")
         context.verify_mode = ssl.CERT_NONE
         # Require server verification
         if cacertfile.exists():

@@ -24,9 +24,9 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
         host=os.environ.get("DB_HOST", "localhost"),
         sslmode=os.environ.get("DB_SSLMODE", "require"),
         port=os.environ.get("DB_PORT", 5432),
-        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs')}/ca.crt"),
-        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs')}/orch.crt"),
-        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs')}/orch.key"),
+        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
+        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
+        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
     )
     with conn.cursor() as cursor:
         cursor.execute(
@@ -40,8 +40,8 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
         for x in range(0, num_retries):
             try:
                 for f in files:
-                    if f[0] != "READY" and f[0] != "DISABLED":
-                        LOG.debug(f"Waiting to status to be COMPLETED or DISABLED {f[0]}")
+                    if f[0] not in ("READY", "DISABLED"):
+                        LOG.debug(f"Waiting for status to be READY or DISABLED {f[0]}")
                         raise Exception
             except Exception as str_error:
                 if str_error:
@@ -68,13 +68,13 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
         host=os.environ.get("DB_HOST", "localhost"),
         sslmode=os.environ.get("DB_SSLMODE", "require"),
         port=os.environ.get("DB_PORT", 5432),
-        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs')}/ca.crt"),
-        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs')}/orch.crt"),
-        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs')}/orch.key"),
+        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
+        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
+        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
     )
 
     with conn2.cursor() as cursor:
-        cursor.execute("""SELECT id FROM local_ega_ebi.filedataset ORDER BY id DESC LIMIT 1""")
+        cursor.execute("SELECT id FROM local_ega_ebi.filedataset ORDER BY id DESC LIMIT 1")
         value = cursor.fetchone()
         last_index = value[0] if value is not None else 0
 
