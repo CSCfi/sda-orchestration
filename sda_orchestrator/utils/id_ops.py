@@ -21,7 +21,8 @@ def map_dataset_file_id(msg: dict, decrypted_checksum: str, accessionID: str) ->
     if len(file_path_parts) < 2:
         dataset = f'urn:default:{msg["user"]}'
     else:
-        dataset = f"urn:dir:{file_path_parts[0]}"
+        # if it is / then we take the next value
+        dataset = f"urn:dir:{file_path_parts[1] if file_path_parts[0] == '/' else file_path_parts[0]}"
 
     map_file2dataset(msg["user"], msg["filepath"], decrypted_checksum, dataset)
 
