@@ -13,7 +13,7 @@ RUN pip install --upgrade pip && \
 
 FROM python:3.7-alpine3.10
 
-LABEL maintainer "CSC Developers"
+LABEL maintainer "NeIC System Developers"
 LABEL org.label-schema.schema-version="1.0"
 
 RUN apk add --no-cache --update libressl postgresql-libs openssh-client supervisor
@@ -25,8 +25,6 @@ COPY --from=BUILD /usr/local/bin/sdainbox /usr/local/bin/
 COPY --from=BUILD /usr/local/bin/sdacomplete /usr/local/bin/
 
 COPY --from=BUILD /usr/local/bin/sdaverified /usr/local/bin/
-
-COPY --from=BUILD /usr/local/bin/webapp /usr/local/bin/
 
 ADD supervisor.conf /etc/
 

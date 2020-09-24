@@ -1,8 +1,13 @@
+"""Message Broker Consumer class."""
+
 import time
-from amqpstorm import Connection, AMQPError
+from typing import Union
+from amqpstorm import Connection, AMQPError, Message
 from .logger import LOG
 import ssl
 from pathlib import Path
+import os
+from distutils.util import strtobool
 
 
 class Consumer:
@@ -10,14 +15,14 @@ class Consumer:
 
     def __init__(
         self,
-        hostname="localhost",
-        username="guest",
-        password=None,
-        port=5671,
-        queue="base.queue",
-        max_retries=None,
-        vhost="/",
-    ):
+        hostname: str = "localhost",
+        username: str = "guest",
+        password: Union[None, str] = None,
+        port: int = 5671,
+        queue: str = "base.queue",
+        max_retries: Union[None, int] = None,
+        vhost: str = "/",
+    ) -> None:
         """Consumer init function."""
         self.hostname = hostname
         self.username = username
@@ -27,11 +32,12 @@ class Consumer:
         self.vhost = vhost
         self.max_retries = max_retries
         self.connection = None
+        self.ssl = bool(strtobool(os.environ.get("BROKER_SSL", "True")))
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.check_hostname = False
-        cacertfile = Path("/tls/certs/root.ca.crt")
-        certfile = Path("/tls/certs/cert.ca.crt")
-        keyfile = Path("/tls/certs/cert.ca.key")
+        cacertfile = Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}")
+        certfile = Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}")
+        keyfile = Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}")
         context.verify_mode = ssl.CERT_NONE
         # Require server verification
         if cacertfile.exists():
@@ -42,7 +48,7 @@ class Consumer:
             context.load_cert_chain(str(certfile), keyfile=str(keyfile))
         self.ssl_context = {"context": context, "server_hostname": None, "check_hostname": False}
 
-    def create_connection(self):
+    def create_connection(self) -> None:
         """Create a connection.
 
         :return:
@@ -56,7 +62,7 @@ class Consumer:
                     self.username,
                     self.password,
                     port=self.port,
-                    ssl=True,
+                    ssl=self.ssl,
                     ssl_options=self.ssl_context,
                     virtual_host=self.vhost,
                 )
@@ -70,7 +76,7 @@ class Consumer:
             except KeyboardInterrupt:
                 break
 
-    def start(self):
+    def start(self) -> None:
         """Start the Consumer.
 
         :return:
@@ -79,8 +85,7 @@ class Consumer:
             self.create_connection()
         while True:
             try:
-                channel = self.connection.channel()
-                # channel.queue.declare(self.queue)
+                channel = self.connection.channel()  # type: ignore
                 channel.basic.consume(self, self.queue, no_ack=False)
                 LOG.info("Connected to queue {0}".format(self.queue))
                 channel.start_consuming(to_tuple=False)
@@ -90,14 +95,14 @@ class Consumer:
                 LOG.error("Something went wrong: {0}".format(error))
                 self.create_connection()
             except KeyboardInterrupt:
-                self.connection.close()
+                self.connection.close()  # type: ignore
                 break
 
-    def handle_message(self, message):
+    def handle_message(self, message: Message) -> None:
         """Handle message."""
         pass
 
-    def __call__(self, message):
+    def __call__(self, message: Message) -> None:
         """Process the message body."""
         try:
             self.handle_message(message)
