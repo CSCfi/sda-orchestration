@@ -13,13 +13,16 @@ class DB:
 
     __state: Dict = {}
 
-    def __init__(self, user: str, password: str) -> None:
+    user = ""
+    password = ""  # nosec
+
+    def __init__(self) -> None:
         """Init DB class."""
         self.__dict__ = self.__state
         if not hasattr(self, "conn"):
             self.conn = psycopg2.connect(
-                user=user,
-                password=password,
+                user=self.user,
+                password=self.password,
                 database=os.environ.get("DB_DATABASE", "lega"),
                 host=os.environ.get("DB_HOST", "localhost"),
                 sslmode=os.environ.get("DB_SSLMODE", "require"),
@@ -44,10 +47,10 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     After this we get all the files matching a user, path and checksum.
     We map in the Data Out table the accession ID to a dataset ID.
     """
-    conn = DB(
-        user=os.environ.get("DB_IN_USER", "lega_in"),
-        password=os.environ.get("DB_IN_PASSWORD", ""),
-    )
+    conn = DB()
+    conn.user = os.environ.get("DB_IN_USER", "lega_out")
+    conn.password = os.environ.get("DB_IN_PASSWORD", "")
+
     with conn.cursor() as cursor:
         cursor.execute(
             "SELECT status FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s",
@@ -77,21 +80,19 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
             {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
         )
         files = cursor.fetchall()
-    conn.close()
 
     last_index = None
     # table out data out requires a different user, thus also a different connection
-    conn2 = DB(
-        user=os.environ.get("DB_OUT_USER", "lega_out"),
-        password=os.environ.get("DB_OUT_PASSWORD", ""),
-    )
 
-    with conn2.cursor() as cursor:
+    conn.user = os.environ.get("DB_OUT_USER", "lega_out")
+    conn.password = os.environ.get("DB_OUT_PASSWORD", "")
+
+    with conn.cursor() as cursor:
         cursor.execute("SELECT id FROM local_ega_ebi.filedataset ORDER BY id DESC LIMIT 1")
         value = cursor.fetchone()
         last_index = value[0] if value is not None else 0
 
-    with conn2.cursor() as cursor:
+    with conn.cursor() as cursor:
         for f in files:
             cursor.execute(
                 """INSERT INTO local_ega_ebi.filedataset(id, file_id, dataset_stable_id)
@@ -104,5 +105,5 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
             )
             last_index += 1
             LOG.info(f"Mapped Accession ID: {f[0]} to Dataset: {dataset_id}")
-            conn2.commit()
-    conn2.close()
+            conn.commit()
+    conn.close()
