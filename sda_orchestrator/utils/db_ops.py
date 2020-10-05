@@ -13,7 +13,7 @@ class DB:
 
     __state: Dict = {}
 
-    def __init__(self, user: str, password: str):
+    def __init__(self, user: str, password: str) -> None:
         """Init DB class."""
         self.__dict__ = self.__state
         if not hasattr(self, "conn"):

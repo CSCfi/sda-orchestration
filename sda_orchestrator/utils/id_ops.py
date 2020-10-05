@@ -26,10 +26,10 @@ def map_dataset_file_id(msg: dict, decrypted_checksum: str, accessionID: str) ->
 
     map_file2dataset(msg["user"], msg["filepath"], decrypted_checksum, dataset)
 
-    LOG.info(f'filepath: {msg["decrypted_checksums"]} mapped stableID {accessionID} and to dataset {dataset}.')
+    LOG.info(f"file with checksum: {decrypted_checksum} mapped accessionID: {accessionID} and to dataset {dataset}.")
 
 
 def generate_accession_id() -> str:
     """Generate Stable ID."""
-    accessionID = uuid4().urn
-    return accessionID
+    accessionID = uuid4()
+    return accessionID.urn
