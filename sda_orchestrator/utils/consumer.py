@@ -2,7 +2,7 @@
 
 import time
 from typing import Union
-from amqpstorm import Connection, AMQPError, Message, Channel
+from amqpstorm import Connection, AMQPError, Message
 from .logger import LOG
 import ssl
 from pathlib import Path

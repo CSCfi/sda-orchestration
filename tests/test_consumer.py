@@ -13,7 +13,7 @@ class ConsumerTest(unittest.TestCase):
         self._mq = Consumer(password="")  # nosec
 
     @patch("sda_orchestrator.utils.consumer.Connection")
-    def test_validate_call(self, mock):
-        """Test if pyscopg2 was called."""
+    def test_validate_amqp_conn(self, mock):
+        """Test if amqp connection was called."""
         self._mq.create_connection()
         mock.assert_called()
