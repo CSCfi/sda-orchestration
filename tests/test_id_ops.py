@@ -7,7 +7,7 @@ from sda_orchestrator.utils.id_ops import map_dataset_file_id, generate_accessio
 
 
 class IDOpsCalled(unittest.TestCase):
-    """Test for Messaging."""
+    """Test for IDs p[s]."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -16,7 +16,7 @@ class IDOpsCalled(unittest.TestCase):
     @patch("logging.Logger.info")
     @patch("sda_orchestrator.utils.id_ops.map_file2dataset")
     def test_map_simple_file(self, mock, log):
-        """Test if start a consumer was called."""
+        """Test if we can map a single file."""
         data = {"filepath": "file.c4gh", "user": "test"}
         map_dataset_file_id(data, "checksum1", "accessionID")
         mock.assert_called_with("test", "file.c4gh", "checksum1", "urn:default:test")
@@ -27,7 +27,7 @@ class IDOpsCalled(unittest.TestCase):
     @patch("logging.Logger.info")
     @patch("sda_orchestrator.utils.id_ops.map_file2dataset")
     def test_map_simple_file_dir(self, mock, log):
-        """Test if start a consumer was called."""
+        """Test if dir scheme affects urn."""
         data = {"filepath": "rooter/dir1/dir2/file.c4gh", "user": "test"}
         map_dataset_file_id(data, "checksum1", "accessionID")
         mock.assert_called_with("test", "rooter/dir1/dir2/file.c4gh", "checksum1", "urn:dir:rooter")
