@@ -1,9 +1,36 @@
 """Database operation for mapping file ID to dataset ID."""
+from typing import Dict
 import psycopg2
 from .logger import LOG
 from time import sleep
 import os
 from pathlib import Path
+from psycopg2.extras import DictCursor
+
+
+class DB:
+    """DB class encapsulating a psycopg2 connection."""
+
+    __state: Dict = {}
+
+    def __init__(self, user: str, password: str):
+        """Init DB class."""
+        self.__dict__ = self.__state
+        if not hasattr(self, "conn"):
+            self.conn = psycopg2.connect(
+                user=user,
+                password=password,
+                database=os.environ.get("DB_DATABASE", "lega"),
+                host=os.environ.get("DB_HOST", "localhost"),
+                sslmode=os.environ.get("DB_SSLMODE", "require"),
+                port=os.environ.get("DB_PORT", 5432),
+                sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
+                sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
+                sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
+            )
+            self.cursor = self.conn.cursor(cursor_factory=DictCursor)
+            self.close = self.conn.close()
+            self.commit = self.conn.commit()
 
 
 def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_id: str) -> None:
@@ -17,16 +44,9 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     After this we get all the files matching a user, path and checksum.
     We map in the Data Out table the accession ID to a dataset ID.
     """
-    conn = psycopg2.connect(
+    conn = DB(
         user=os.environ.get("DB_IN_USER", "lega_in"),
-        password=os.environ.get("DB_IN_PASSWORD"),
-        database=os.environ.get("DB_DATABASE", "lega"),
-        host=os.environ.get("DB_HOST", "localhost"),
-        sslmode=os.environ.get("DB_SSLMODE", "require"),
-        port=os.environ.get("DB_PORT", 5432),
-        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
-        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
-        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
+        password=os.environ.get("DB_IN_PASSWORD", ""),
     )
     with conn.cursor() as cursor:
         cursor.execute(
@@ -61,16 +81,9 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
 
     last_index = None
     # table out data out requires a different user, thus also a different connection
-    conn2 = psycopg2.connect(
+    conn2 = DB(
         user=os.environ.get("DB_OUT_USER", "lega_out"),
-        password=os.environ.get("DB_OUT_PASSWORD"),
-        database=os.environ.get("DB_DATABASE", "lega"),
-        host=os.environ.get("DB_HOST", "localhost"),
-        sslmode=os.environ.get("DB_SSLMODE", "require"),
-        port=os.environ.get("DB_PORT", 5432),
-        sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
-        sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
-        sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
+        password=os.environ.get("DB_OUT_PASSWORD", ""),
     )
 
     with conn2.cursor() as cursor:
