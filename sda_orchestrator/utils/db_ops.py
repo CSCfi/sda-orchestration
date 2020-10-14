@@ -128,7 +128,7 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
             files = conn.execute_query(
                 in_user,
                 in_passwd,
-                "SELECT status FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s"
+                "SELECT status FROM local_ega.files where elixir_id = %(user)s AND archive_path = %(filepath)s"
                 " AND archive_file_checksum = %(decrypted_checksum)s",
                 {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
             )
@@ -148,11 +148,11 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     files = conn.execute_query(
         in_user,
         in_passwd,
-        "SELECT id FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s"
+        "SELECT id FROM local_ega.files where elixir_id = %(user)s AND archive_path = %(filepath)s"
         " AND archive_file_checksum = %(decrypted_checksum)s",
         {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
     )
-    LOG.debug(f"retrieved id {files} for files with filepath {filepath} from DB.")
+    LOG.debug(f"retrieved id {files} for files with archive filepath {filepath} from DB.")
 
     last_index = None
     # table out data out requires a different user, thus also a different connection
