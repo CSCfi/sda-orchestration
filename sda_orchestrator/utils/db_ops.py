@@ -1,39 +1,110 @@
 """Database operation for mapping file ID to dataset ID."""
-from typing import Dict
+from typing import Any, Dict, Union
 import psycopg2
 from .logger import LOG
 from time import sleep
 import os
 from pathlib import Path
-from psycopg2.extras import DictCursor
 
 
-class DB:
-    """DB class encapsulating a psycopg2 connection."""
+class DBConnector:
+    """DBConnector general class."""
 
-    __state: Dict = {}
+    def __init__(self, user: Union[str, None], password: Union[str, None]) -> None:
+        """Define init parameters."""
+        self.user = user
+        self.password = password
+        self.dbconn = None
 
-    user = ""
-    password = ""  # nosec
+    def create_connection(self) -> psycopg2.connect:
+        """Create connection."""
+        db_config = {
+            "user": self.user,
+            "password": self.password,
+            "database": os.environ.get("DB_DATABASE", "lega"),
+            "host": os.environ.get("DB_HOST", "localhost"),
+            "sslmode": os.environ.get("DB_SSLMODE", "require"),
+            "port": os.environ.get("DB_PORT", 5432),
+            "sslrootcert": Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
+            "sslcert": Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
+            "sslkey": Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
+        }
+        LOG.debug("connecting to PostgreSQL database...")
+        connection = psycopg2.connect(**db_config)
 
-    def __init__(self) -> None:
-        """Init DB class."""
-        self.__dict__ = self.__state
-        if not hasattr(self, "conn"):
-            self.conn = psycopg2.connect(
-                user=self.user,
-                password=self.password,
-                database=os.environ.get("DB_DATABASE", "lega"),
-                host=os.environ.get("DB_HOST", "localhost"),
-                sslmode=os.environ.get("DB_SSLMODE", "require"),
-                port=os.environ.get("DB_PORT", 5432),
-                sslrootcert=Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}"),
-                sslcert=Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
-                sslkey=Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
-            )
-            self.cursor = self.conn.cursor(cursor_factory=DictCursor)
-            self.close = self.conn.close()
-            self.commit = self.conn.commit()
+        return connection
+
+    def __enter__(self) -> None:
+        """Create connection enter."""
+        self.dbconn = self.create_connection()
+        return self.dbconn
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Close connection exit."""
+        self.dbconn.close()  # type:ignore
+
+
+class DBConnection:
+    """DBConnection class for using singleton db connnection."""
+
+    connection = None
+
+    @classmethod
+    def get_connection(
+        cls: psycopg2.connect, new: bool = False, user: Union[str, None] = None, passwd: Union[str, None] = None
+    ) -> psycopg2.connect:
+        """Return new Singleton database connection."""
+        if new or not cls.connection:
+            cls.connection = DBConnector(user, passwd).create_connection()
+        LOG.debug("connection established")
+        return cls.connection
+
+    @classmethod
+    def execute_query(
+        cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: dict
+    ) -> Dict:
+        """Execute query on singleton db connection."""
+        connection = cls.get_connection(user=user, passwd=passwd)
+        try:
+            cursor = connection.cursor()
+        except Exception:
+            connection = cls.get_connection(new=True, user=user, passwd=passwd)  # Create new connection
+            cursor = connection.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    @classmethod
+    def insert_query(
+        cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: dict
+    ) -> None:
+        """Execute insert query on singleton db connection."""
+        connection = cls.get_connection(user=user, passwd=passwd)
+        try:
+            cursor = connection.cursor()
+        except Exception:
+            connection = cls.get_connection(new=True, user=user, passwd=passwd)  # Create new connection
+        cursor = connection.cursor()
+        cursor.execute(query, params)
+        connection.commit()
+        cursor.close()
+
+    @classmethod
+    def execute_query_one(
+        cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: Union[dict, None]
+    ) -> Dict:
+        """Execute query for one value on singleton db connection."""
+        connection = cls.get_connection(new=True, user=user, passwd=passwd)
+        try:
+            cursor = connection.cursor()
+        except Exception:
+            connection = cls.get_connection(new=True, user=user, passwd=passwd)  # Create new connection
+            cursor = connection.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchone()
+        cursor.close()
+        return result
 
 
 def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_id: str) -> None:
@@ -47,63 +118,63 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     After this we get all the files matching a user, path and checksum.
     We map in the Data Out table the accession ID to a dataset ID.
     """
-    conn = DB()
-    conn.user = os.environ.get("DB_IN_USER", "lega_out")
-    conn.password = os.environ.get("DB_IN_PASSWORD", "")
+    conn = DBConnection()
+    in_user = os.environ.get("DB_IN_USER", "lega_in")
+    in_passwd = os.environ.get("DB_IN_PASSWORD", "")
+    sleep_time = 2
+    num_retries = 5
+    for x in range(0, num_retries):
+        try:
+            files = conn.execute_query(
+                in_user,
+                in_passwd,
+                "SELECT status FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s"
+                " AND archive_file_checksum = %(decrypted_checksum)s",
+                {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
+            )
+            for f in files:
+                if f[0] not in ("READY", "DISABLED"):
+                    LOG.debug(f"Waiting for status to be READY or DISABLED {f[0]}")
+                    raise Exception
+        except Exception as str_error:
+            if str_error:
+                sleep(sleep_time)
+                sleep_time *= 2
+            else:
+                break
 
-    with conn.cursor() as cursor:
-        cursor.execute(
-            "SELECT status FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s",
-            {"user": user, "filepath": filepath},
-        )
-        files = cursor.fetchall()
-        # wait for file status to be ready or disabled
-        sleep_time = 2
-        num_retries = 5
-        for x in range(0, num_retries):
-            try:
-                for f in files:
-                    if f[0] not in ("READY", "DISABLED"):
-                        LOG.debug(f"Waiting for status to be READY or DISABLED {f[0]}")
-                        raise Exception
-            except Exception as str_error:
-                if str_error:
-                    sleep(sleep_time)
-                    sleep_time *= 2
-                else:
-                    break
+    LOG.info("checked has correct status in DB.")
 
-    with conn.cursor() as cursor:
-        cursor.execute(
-            "SELECT id FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s"
-            " AND archive_file_checksum = %(decrypted_checksum)s",
-            {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
-        )
-        files = cursor.fetchall()
+    files = conn.execute_query(
+        in_user,
+        in_passwd,
+        "SELECT id FROM local_ega.files where elixir_id = %(user)s AND inbox_path = %(filepath)s"
+        " AND archive_file_checksum = %(decrypted_checksum)s",
+        {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
+    )
+    LOG.debug(f"retrieved id {files} for files with filepath {filepath} from DB.")
 
     last_index = None
     # table out data out requires a different user, thus also a different connection
+    out_user = os.environ.get("DB_OUT_USER", "lega_out")
+    out_passwd = os.environ.get("DB_OUT_PASSWORD", "")
 
-    conn.user = os.environ.get("DB_OUT_USER", "lega_out")
-    conn.password = os.environ.get("DB_OUT_PASSWORD", "")
+    value = conn.execute_query_one(
+        out_user, out_passwd, "SELECT id FROM local_ega_ebi.filedataset ORDER BY id DESC LIMIT 1", None
+    )
+    last_index = value[0] if value is not None else 0
 
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM local_ega_ebi.filedataset ORDER BY id DESC LIMIT 1")
-        value = cursor.fetchone()
-        last_index = value[0] if value is not None else 0
-
-    with conn.cursor() as cursor:
-        for f in files:
-            cursor.execute(
-                """INSERT INTO local_ega_ebi.filedataset(id, file_id, dataset_stable_id)
-                VALUES(%(last_index)s, %(file_id)s, %(dataset_id)s)""",
-                {
-                    "last_index": last_index + 1 if last_index is not None else 1,
-                    "file_id": f[0],
-                    "dataset_id": dataset_id,
-                },
-            )
-            last_index += 1
-            LOG.info(f"Mapped Accession ID: {f[0]} to Dataset: {dataset_id}")
-            conn.commit()
-    conn.close()
+    for f in files:
+        conn.insert_query(
+            out_user,
+            out_passwd,
+            """INSERT INTO local_ega_ebi.filedataset(id, file_id, dataset_stable_id)
+            VALUES(%(last_index)s, %(file_id)s, %(dataset_id)s)""",
+            {
+                "last_index": last_index + 1 if last_index is not None else 1,
+                "file_id": f[0],
+                "dataset_id": dataset_id,
+            },
+        )
+        last_index += 1
+        LOG.info(f"Mapped Accession ID: {f[0]} to Dataset: {dataset_id}")
