@@ -4,7 +4,8 @@ from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
 import os
-from .utils.id_ops import generate_accession_id, map_dataset_file_id
+from .utils.id_ops import generate_accession_id
+from .utils.db_ops import map_file2dataset
 
 
 class VerifyConsumer(Consumer):
@@ -44,7 +45,7 @@ class VerifyConsumer(Consumer):
                      with checksum {decrypted_checksum}.'
             )
 
-            map_dataset_file_id(cmp_msg, decrypted_checksum, accessionID)
+            map_file2dataset(cmp_msg["user"], cmp_msg["filepath"], decrypted_checksum)
 
         except Exception as error:
             LOG.error("Something went wrong: {0}".format(error))

@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 import uuid
-from sda_orchestrator.utils.id_ops import map_dataset_file_id, generate_accession_id
+from sda_orchestrator.utils.id_ops import generate_dataset_id, generate_accession_id
 
 
 class IDOpsCalled(unittest.TestCase):
@@ -13,27 +13,15 @@ class IDOpsCalled(unittest.TestCase):
         """Set up test fixtures."""
         pass
 
-    @patch("logging.Logger.info")
-    @patch("sda_orchestrator.utils.id_ops.map_file2dataset")
-    def test_map_simple_file(self, mock, log):
+    def test_map_simple_file(self):
         """Test if we can map a single file."""
-        data = {"filepath": "file.c4gh", "user": "test"}
-        map_dataset_file_id(data, "checksum1", "accessionID")
-        mock.assert_called_with("test", "file.c4gh", "checksum1", "urn:default:test")
-        log.assert_called_with(
-            "file with checksum: checksum1 mapped accessionID: accessionID and to dataset urn:default:test."
-        )
+        result = generate_dataset_id("user", "user/txt1.c4gh")
+        self.assertEqual("urn:default:user", result)
 
-    @patch("logging.Logger.info")
-    @patch("sda_orchestrator.utils.id_ops.map_file2dataset")
-    def test_map_simple_file_dir(self, mock, log):
+    def test_map_simple_file_dir(self):
         """Test if dir scheme affects urn."""
-        data = {"filepath": "rooter/dir1/dir2/file.c4gh", "user": "test"}
-        map_dataset_file_id(data, "checksum1", "accessionID")
-        mock.assert_called_with("test", "rooter/dir1/dir2/file.c4gh", "checksum1", "urn:dir:rooter")
-        log.assert_called_with(
-            "file with checksum: checksum1 mapped accessionID: accessionID and to dataset urn:dir:rooter."
-        )
+        result = generate_dataset_id("user", "user/smth/smth2/txt9.c4gh")
+        self.assertEqual("urn:dir:smth", result)
 
     @patch(
         "sda_orchestrator.utils.id_ops.uuid4",

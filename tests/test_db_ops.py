@@ -15,5 +15,5 @@ class DBOps(unittest.TestCase):
     @patch("psycopg2.connect")
     def test_validate_call(self, mock):
         """Test if pyscopg2 was called."""
-        map_file2dataset("test", "rooter/dir1/dir2/file.c4gh", "checksum1", "urn:dir:rooter")
+        map_file2dataset("test", "rooter/dir1/dir2/file.c4gh", "checksum1")
         self.assertTrue(mock.called)

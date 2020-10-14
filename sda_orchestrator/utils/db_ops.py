@@ -5,6 +5,7 @@ from .logger import LOG
 from time import sleep
 import os
 from pathlib import Path
+from .id_ops import generate_dataset_id
 
 
 class DBConnector:
@@ -64,12 +65,8 @@ class DBConnection:
         cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: dict
     ) -> Dict:
         """Execute query on singleton db connection."""
-        connection = cls.get_connection(user=user, passwd=passwd)
-        try:
-            cursor = connection.cursor()
-        except Exception:
-            connection = cls.get_connection(new=True, user=user, passwd=passwd)  # Create new connection
-            cursor = connection.cursor()
+        connection = cls.get_connection(new=True, user=user, passwd=passwd)
+        cursor = connection.cursor()
         cursor.execute(query, params)
         result = cursor.fetchall()
         cursor.close()
@@ -80,11 +77,7 @@ class DBConnection:
         cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: dict
     ) -> None:
         """Execute insert query on singleton db connection."""
-        connection = cls.get_connection(user=user, passwd=passwd)
-        try:
-            cursor = connection.cursor()
-        except Exception:
-            connection = cls.get_connection(new=True, user=user, passwd=passwd)  # Create new connection
+        connection = cls.get_connection(new=True, user=user, passwd=passwd)
         cursor = connection.cursor()
         cursor.execute(query, params)
         connection.commit()
@@ -96,18 +89,14 @@ class DBConnection:
     ) -> Dict:
         """Execute query for one value on singleton db connection."""
         connection = cls.get_connection(new=True, user=user, passwd=passwd)
-        try:
-            cursor = connection.cursor()
-        except Exception:
-            connection = cls.get_connection(new=True, user=user, passwd=passwd)  # Create new connection
-            cursor = connection.cursor()
+        cursor = connection.cursor()
         cursor.execute(query, params)
         result = cursor.fetchone()
         cursor.close()
         return result
 
 
-def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_id: str) -> None:
+def map_file2dataset(user: str, filepath: str, decrypted_checksum: str) -> None:
     """Assign file to dataset, for dataset driven permissions.
 
     We establish 2 connections to db one to check the file has been marked READY or DISABLED.
@@ -124,14 +113,14 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     sleep_time = 2
     num_retries = 5
     for x in range(0, num_retries):
+        files = conn.execute_query(
+            in_user,
+            in_passwd,
+            "SELECT status FROM local_ega.files where elixir_id = %(user)s AND archive_path = %(filepath)s"
+            " AND archive_file_checksum = %(decrypted_checksum)s",
+            {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
+        )
         try:
-            files = conn.execute_query(
-                in_user,
-                in_passwd,
-                "SELECT status FROM local_ega.files where elixir_id = %(user)s AND archive_path = %(filepath)s"
-                " AND archive_file_checksum = %(decrypted_checksum)s",
-                {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
-            )
             for f in files:
                 if f[0] not in ("READY", "DISABLED"):
                     LOG.debug(f"Waiting for status to be READY or DISABLED {f[0]}")
@@ -145,14 +134,14 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
 
     LOG.info("checked has correct status in DB.")
 
-    files = conn.execute_query(
+    archived_files = conn.execute_query(
         in_user,
         in_passwd,
-        "SELECT id FROM local_ega.files where elixir_id = %(user)s AND archive_path = %(filepath)s"
+        "SELECT id, inbox_path FROM local_ega.files where elixir_id = %(user)s AND archive_path = %(filepath)s"
         " AND archive_file_checksum = %(decrypted_checksum)s",
         {"user": user, "filepath": filepath, "decrypted_checksum": decrypted_checksum},
     )
-    LOG.debug(f"retrieved id {files} for files with archive filepath {filepath} from DB.")
+    LOG.debug(f"retrieved id {archived_files} for files with archive file {filepath} from DB.")
 
     last_index = None
     # table out data out requires a different user, thus also a different connection
@@ -164,7 +153,8 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
     )
     last_index = value[0] if value is not None else 0
 
-    for f in files:
+    for f in archived_files:
+        dataset_id = generate_dataset_id(user, f[1])
         conn.insert_query(
             out_user,
             out_passwd,
@@ -177,4 +167,4 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str, dataset_
             },
         )
         last_index += 1
-        LOG.info(f"Mapped Accession ID: {f[0]} to Dataset: {dataset_id}")
+        LOG.info(f"Mapped file with ID: {f[0]} to Dataset: {dataset_id}")
