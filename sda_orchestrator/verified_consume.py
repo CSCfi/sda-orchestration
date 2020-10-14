@@ -25,6 +25,7 @@ class VerifyConsumer(Consumer):
             channel = self.connection.channel()  # type: ignore
             accessionID = generate_accession_id()
             content = {
+                "type": "accession",
                 "user": cmp_msg["user"],
                 "filepath": cmp_msg["filepath"],
                 "decrypted_checksums": cmp_msg["decrypted_checksums"],
