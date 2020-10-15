@@ -1,5 +1,5 @@
 """Database operation for mapping file ID to dataset ID."""
-from typing import Any, Dict, Union
+from typing import Dict, Union
 import psycopg2
 from .logger import LOG
 from time import sleep
@@ -9,19 +9,16 @@ from .id_ops import generate_dataset_id
 
 
 class DBConnector:
-    """DBConnector general class."""
+    """Class for DB connection."""
 
-    def __init__(self, user: Union[str, None], password: Union[str, None]) -> None:
-        """Define init parameters."""
-        self.user = user
-        self.password = password
-        self.dbconn = None
+    conns: dict = {}
 
-    def create_connection(self) -> psycopg2.connect:
-        """Create connection."""
+    @classmethod
+    def getConnection(cls: psycopg2.connect, user: str, passwd: str) -> psycopg2.connect:
+        """Create DB connection or reuse it."""
         db_config = {
-            "user": self.user,
-            "password": self.password,
+            "user": user,
+            "password": passwd,
             "database": os.environ.get("DB_DATABASE", "lega"),
             "host": os.environ.get("DB_HOST", "localhost"),
             "sslmode": os.environ.get("DB_SSLMODE", "require"),
@@ -30,42 +27,18 @@ class DBConnector:
             "sslcert": Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}"),
             "sslkey": Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}"),
         }
-        LOG.debug("connecting to PostgreSQL database...")
-        connection = psycopg2.connect(**db_config)
 
-        return connection
-
-    def __enter__(self) -> None:
-        """Create connection enter."""
-        self.dbconn = self.create_connection()
-        return self.dbconn
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Close connection exit."""
-        self.dbconn.close()  # type:ignore
-
-
-class DBConnection:
-    """DBConnection class for using singleton db connnection."""
-
-    connection = None
-
-    @classmethod
-    def get_connection(
-        cls: psycopg2.connect, new: bool = False, user: Union[str, None] = None, passwd: Union[str, None] = None
-    ) -> psycopg2.connect:
-        """Return new Singleton database connection."""
-        if new or not cls.connection:
-            cls.connection = DBConnector(user, passwd).create_connection()
-        LOG.debug("connection established")
-        return cls.connection
+        if user in cls.conns:
+            return cls.conns[user]
+        cls.conns[user] = psycopg2.connect(**db_config)
+        return cls.conns[user]
 
     @classmethod
     def execute_query(
         cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: dict
     ) -> Dict:
         """Execute query on singleton db connection."""
-        connection = cls.get_connection(new=True, user=user, passwd=passwd)
+        connection = cls.getConnection(user, passwd)
         cursor = connection.cursor()
         cursor.execute(query, params)
         result = cursor.fetchall()
@@ -77,7 +50,7 @@ class DBConnection:
         cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: dict
     ) -> None:
         """Execute insert query on singleton db connection."""
-        connection = cls.get_connection(new=True, user=user, passwd=passwd)
+        connection = cls.getConnection(user, passwd)
         cursor = connection.cursor()
         cursor.execute(query, params)
         connection.commit()
@@ -88,7 +61,7 @@ class DBConnection:
         cls: psycopg2.connect, user: Union[str, None], passwd: Union[str, None], query: str, params: Union[dict, None]
     ) -> Dict:
         """Execute query for one value on singleton db connection."""
-        connection = cls.get_connection(new=True, user=user, passwd=passwd)
+        connection = cls.getConnection(user, passwd)
         cursor = connection.cursor()
         cursor.execute(query, params)
         result = cursor.fetchone()
@@ -107,7 +80,7 @@ def map_file2dataset(user: str, filepath: str, decrypted_checksum: str) -> None:
     After this we get all the files matching a user, path and checksum.
     We map in the Data Out table the accession ID to a dataset ID.
     """
-    conn = DBConnection()
+    conn = DBConnector()
     in_user = os.environ.get("DB_IN_USER", "lega_in")
     in_passwd = os.environ.get("DB_IN_PASSWORD", "")
     sleep_time = 2
