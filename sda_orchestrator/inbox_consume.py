@@ -23,6 +23,7 @@ class InboxConsumer(Consumer):
             # we keep the encrypted_checksum but it can also be missing
             channel = self.connection.channel()  # type: ignore
             content = {
+                "type": "ingest",
                 "user": inbx_msg["user"],
                 "filepath": inbx_msg["filepath"],
             }
