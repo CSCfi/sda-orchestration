@@ -40,7 +40,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.7",
     ],
-    install_requires=["psycopg2", "amqpstorm"],
+    install_requires=["amqpstorm"],
     extras_require={
         "test": ["coverage", "coveralls", "pytest", "pytest-cov", "tox"],
     },
