@@ -43,7 +43,6 @@ class VerifyConsumer(Consumer):
                 f'Sent the message to accessionIDs queue to set accession ID for file {cmp_msg["filepath"]} \
                      with checksum {decrypted_checksum}.'
             )
-            
 
         except Exception as error:
             LOG.error("Something went wrong: {0}".format(error))

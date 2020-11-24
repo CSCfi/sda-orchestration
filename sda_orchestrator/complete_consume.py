@@ -38,8 +38,8 @@ class CompleteConsumer(Consumer):
 
             channel.close()
             LOG.info(
-                f'Sent the message to mappings queue to set dataset ID {datasetID} for file \
-                     with accessionID {accessionID}.'
+                f"Sent the message to mappings queue to set dataset ID {datasetID} for file \
+                     with accessionID {accessionID}."
             )
 
         except Exception as error:
