@@ -16,7 +16,7 @@ FROM python:3.7-alpine3.10
 LABEL maintainer "NeIC System Developers"
 LABEL org.label-schema.schema-version="1.0"
 
-RUN apk add --no-cache --update libressl postgresql-libs openssh-client supervisor
+RUN apk add --no-cache --update supervisor
 
 COPY --from=BUILD /usr/local/lib/python3.7/ usr/local/lib/python3.7/
 
