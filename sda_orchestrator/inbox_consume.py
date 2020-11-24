@@ -31,9 +31,9 @@ class InboxConsumer(Consumer):
                 content["encrypted_checksums"] = inbx_msg["encrypted_checksums"]
             sent = Message.create(channel, json.dumps(content), properties)
 
-            sent.publish(os.environ.get("FILES_QUEUE", "files"), exchange=os.environ.get("BROKER_EXCHANGE", "localega"))
+            sent.publish(os.environ.get("INGEST_QUEUE", "ingest"), exchange=os.environ.get("BROKER_EXCHANGE", "sda"))
             channel.close()
-            LOG.info(f'Sent the message to files queue to trigger ingestion for filepath: {inbx_msg["filepath"]}.')
+            LOG.info(f'Sent the message to ingest queue to trigger ingestion for filepath: {inbx_msg["filepath"]}.')
         except Exception as error:
             LOG.error("Something went wrong: {0}".format(error))
 
@@ -43,10 +43,10 @@ def main() -> None:
     CONSUMER = InboxConsumer(
         hostname=str(os.environ.get("BROKER_HOST")),
         port=int(os.environ.get("BROKER_PORT", 5670)),
-        username=os.environ.get("BROKER_USER", "lega"),
+        username=os.environ.get("BROKER_USER", "sda"),
         password=os.environ.get("BROKER_PASSWORD", ""),
-        queue=os.environ.get("INBOX_QUEUE", "files.inbox"),
-        vhost=os.environ.get("BROKER_VHOST", "lega"),
+        queue=os.environ.get("INBOX_QUEUE", "inbox"),
+        vhost=os.environ.get("BROKER_VHOST", "sda"),
     )
     CONSUMER.start()
 
