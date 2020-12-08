@@ -16,9 +16,13 @@ setup(
     author_email="",
     description="SDA orchestrator",
     long_description="",
-    packages=["sda_orchestrator", "sda_orchestrator/utils"],
+    packages=["sda_orchestrator", "sda_orchestrator/utils", "sda_orchestrator/schemas"],
     # If any package contains *.json, include them:
-    package_data={"": ["*.html"]},
+    package_data={
+        "": [
+            "schemas/*.json",
+        ]
+    },
     entry_points={
         "console_scripts": [
             "sdainbox=sda_orchestrator.inbox_consume:main",
@@ -40,7 +44,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.7",
     ],
-    install_requires=["amqpstorm"],
+    install_requires=["amqpstorm", "jsonschema"],
     extras_require={
         "test": ["coverage", "coveralls", "pytest", "pytest-cov", "tox"],
     },
