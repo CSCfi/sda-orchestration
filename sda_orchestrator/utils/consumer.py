@@ -1,13 +1,18 @@
 """Message Broker Consumer class."""
 
 import time
-from typing import Union
-from amqpstorm import Connection, AMQPError, Message
-from .logger import LOG
+import os
+import json
 import ssl
 from pathlib import Path
-import os
+from typing import Union
 from distutils.util import strtobool
+
+from amqpstorm import Connection, AMQPError, Message
+
+from .logger import LOG
+from jsonschema.exceptions import ValidationError
+from ..schemas.validate import ValidateJSON, load_schema
 
 
 class Consumer:
@@ -102,12 +107,51 @@ class Consumer:
         """Handle message."""
         pass
 
+    def _error_message(self, message: Message, reason: str) -> None:
+        """Send formated error message to error queue."""
+        channel = self.connection.channel()  # type: ignore
+        properties = {
+            "content_type": "application/json",
+            "headers": {},
+            "correlation_id": message.correlation_id,
+            "delivery_mode": 2,
+        }
+        original_message = json.loads(message.body)
+
+        error_trigger = {"user": original_message["user"], "filepath": original_message["filepath"], "reason": reason}
+
+        if "encrypted_checksums" in original_message:
+            error_trigger["encrypted_checksums"] = original_message["encrypted_checksums"]
+
+        if "decrypted_checksums" in original_message:
+            error_trigger["decrypted_checksums"] = original_message["decrypted_checksums"]
+
+        error_msg = json.dumps(error_trigger)
+        LOG.debug(f"Error Message: {error_msg}")
+        ValidateJSON(load_schema("ingestion-user-error")).validate(json.loads(error_msg))
+
+        error = Message.create(channel, error_msg, properties)
+        error.publish(os.environ.get("ERROR_QUEUE", "error"), exchange=os.environ.get("BROKER_EXCHANGE", "sda"))
+
+        channel.close()
+
+        LOG.info(
+            f"Published error message (corr-id: {message.correlation_id} filepath: {original_message['filepath']}, ",
+            f"user: {original_message['user']}, with reason: {reason})",
+        )
+
     def __call__(self, message: Message) -> None:
         """Process the message body."""
         try:
             self.handle_message(message)
-        except Exception as error:
-            LOG.error("Something went wrong: {0}".format(error))
-            message.reject(requeue=False)
+        except (ValidationError, Exception) as error:
+            try:
+                self._error_message(message, f"Exception occurred: {error}")
+            except ValidationError:
+                LOG.error("Could not validate the error message. Not properly formatted.")
+            except Exception as error:
+                LOG.error(f"Exception occurred: {error}")
+            finally:
+                message.reject(requeue=False)
         else:
             message.ack()
