@@ -5,6 +5,7 @@ from jsonschema import Draft7Validator, validators
 
 from typing import Any, Dict, Generator
 from pathlib import Path
+from ..utils.logger import LOG
 
 
 def load_schema(name: str) -> Dict:
@@ -12,10 +13,14 @@ def load_schema(name: str) -> Dict:
     module_path = Path(__file__).resolve().parent
     path = module_path.joinpath(f"{name}.json")
 
-    with open(str(path), "r") as fp:
-        data = fp.read()
+    if path.is_file():
+        with open(str(path), "r") as fp:
+            data = fp.read()
 
-    return json.loads(data)
+        return json.loads(data)
+    else:
+        LOG.error(f"Schema file {name} not found.")
+        raise FileNotFoundError
 
 
 def extend_with_default(validator_class: Draft7Validator) -> Draft7Validator:
