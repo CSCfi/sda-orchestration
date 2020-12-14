@@ -4,7 +4,7 @@ from typing import Dict
 from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
-import os
+from os import environ
 from pathlib import Path
 from jsonschema.exceptions import ValidationError
 from .schemas.validate import ValidateJSON, load_schema
@@ -72,7 +72,7 @@ class InboxConsumer(Consumer):
 
             ingest = Message.create(channel, ingest_msg, properties)
 
-            ingest.publish(os.environ.get("INGEST_QUEUE", "ingest"), exchange=os.environ.get("BROKER_EXCHANGE", "sda"))
+            ingest.publish(environ.get("INGEST_QUEUE", "ingest"), exchange=environ.get("BROKER_EXCHANGE", "sda"))
             channel.close()
 
             LOG.info(f'Sent the message to ingest queue to trigger ingestion for filepath: {inbox_msg["filepath"]}.')
@@ -85,12 +85,12 @@ class InboxConsumer(Consumer):
 def main() -> None:
     """Run the Inbox consumer."""
     CONSUMER = InboxConsumer(
-        hostname=str(os.environ.get("BROKER_HOST")),
-        port=int(os.environ.get("BROKER_PORT", 5670)),
-        username=os.environ.get("BROKER_USER", "sda"),
-        password=os.environ.get("BROKER_PASSWORD", ""),
-        queue=os.environ.get("INBOX_QUEUE", "inbox"),
-        vhost=os.environ.get("BROKER_VHOST", "sda"),
+        hostname=str(environ.get("BROKER_HOST")),
+        port=int(environ.get("BROKER_PORT", 5670)),
+        username=environ.get("BROKER_USER", "sda"),
+        password=environ.get("BROKER_PASSWORD", ""),
+        queue=environ.get("INBOX_QUEUE", "inbox"),
+        vhost=environ.get("BROKER_VHOST", "sda"),
     )
     CONSUMER.start()
 

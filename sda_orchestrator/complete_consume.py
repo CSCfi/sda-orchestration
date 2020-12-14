@@ -3,7 +3,7 @@ import json
 from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
-import os
+from os import environ
 from .utils.id_ops import generate_dataset_id
 from jsonschema.exceptions import ValidationError
 from .schemas.validate import ValidateJSON, load_schema
@@ -57,9 +57,7 @@ class CompleteConsumer(Consumer):
             ValidateJSON(load_schema("dataset-mapping")).validate(json.loads(mappings_msg))
 
             mapping = Message.create(channel, mappings_msg, properties)
-            mapping.publish(
-                os.environ.get("MAPPINGS_QUEUE", "mappings"), exchange=os.environ.get("BROKER_EXCHANGE", "sda")
-            )
+            mapping.publish(environ.get("MAPPINGS_QUEUE", "mappings"), exchange=environ.get("BROKER_EXCHANGE", "sda"))
 
             channel.close()
 
@@ -76,12 +74,12 @@ class CompleteConsumer(Consumer):
 def main() -> None:
     """Run the Complete consumer."""
     CONSUMER = CompleteConsumer(
-        hostname=str(os.environ.get("BROKER_HOST")),
-        port=int(os.environ.get("BROKER_PORT", 5670)),
-        username=os.environ.get("BROKER_USER", "sda"),
-        password=os.environ.get("BROKER_PASSWORD", ""),
-        queue=os.environ.get("COMPLETED_QUEUE", "completed"),
-        vhost=os.environ.get("BROKER_VHOST", "sda"),
+        hostname=str(environ.get("BROKER_HOST")),
+        port=int(environ.get("BROKER_PORT", 5670)),
+        username=environ.get("BROKER_USER", "sda"),
+        password=environ.get("BROKER_PASSWORD", ""),
+        queue=environ.get("COMPLETED_QUEUE", "completed"),
+        vhost=environ.get("BROKER_VHOST", "sda"),
     )
     CONSUMER.start()
 
