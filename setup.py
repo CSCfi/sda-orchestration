@@ -44,7 +44,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.7",
     ],
-    install_requires=["amqpstorm", "jsonschema"],
+    install_requires=["amqpstorm", "jsonschema", "httpx", "shortuuid"],
     extras_require={
         "test": ["coverage", "coveralls", "pytest", "pytest-cov", "tox"],
     },

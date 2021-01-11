@@ -1,0 +1,27 @@
+{
+    "rems": {},
+    "datacite": {
+        "creators": [
+            {
+                "name": "Nordic e-Infrastructure Collaboration",
+                "nameType": "Organizational",
+                "affiliation": [
+                    {
+                        "name": "Nordic e-Infrastructure Collaboration",
+                        "schemeUri": "https://ror.org",
+                        "affiliationIdentifier": "https://ror.org/04jcwf484",
+                        "affiliationIdentifierScheme": "ROR"
+                    }
+                ]
+            }
+        ],
+        "publisher": "Nordic e-Infrastructure Collaboration",
+        "subjects": [
+            {
+                "subject": "FOS: Biological sciences",
+                "subjectScheme": "Fields of Science and Technology (FOS)"
+            }
+        ],
+        "resourceURL": "http://data-access.sd.csc.fi/"
+    }
+}
