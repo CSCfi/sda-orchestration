@@ -92,18 +92,18 @@ class DOIHandler:
             response = await client.post(
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=draft_doi_payload, headers=headers
             )
-        json_response = response.json()
+        draft_resp = response.json()
 
         doi_data = None
         if response.status_code == 200:
-            LOG.debug(f"DOI draft created and response was: {json_response}")
-            LOG.info(f"DOI draft created with doi: {json_response['data']['attributes']['doi']}.")
+            LOG.debug(f"DOI draft created and response was: {draft_resp}")
+            LOG.info(f"DOI draft created with doi: {draft_resp['data']['attributes']['doi']}.")
             doi_data = {
-                "suffix": json_response["data"]["attributes"]["suffix"],
-                "fullDOI": json_response["data"]["attributes"]["doi"],
+                "suffix": draft_resp["data"]["attributes"]["suffix"],
+                "fullDOI": draft_resp["data"]["attributes"]["doi"],
             }
         else:
-            doi_data = self._check_errors(json_response, doi_suffix)
+            doi_data = self._check_errors(draft_resp, doi_suffix)
 
         return doi_data
 
@@ -143,35 +143,36 @@ class DOIHandler:
             response = await client.post(
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=publish_data_payload, headers=headers
             )
-        json_response = response.json()
+        publish_resp = response.json()
         doi_data = None
         if response.status_code == 200:
-            LOG.debug(f"DOI created with state: {state} and response was: {json_response}")
-            LOG.info(f"DOI created with doi: {json_response['data']['attributes']['doi']} with state {state}.")
+            LOG.debug(f"DOI created with state: {state} and response was: {publish_resp}")
+            LOG.info(f"DOI created with doi: {publish_resp['data']['attributes']['doi']} with state {state}.")
             doi_data = {
-                "suffix": json_response["data"]["attributes"]["suffix"],
-                "fullDOI": json_response["data"]["attributes"]["doi"],
+                "suffix": publish_resp["data"]["attributes"]["suffix"],
+                "fullDOI": publish_resp["data"]["attributes"]["doi"],
             }
         else:
-            doi_data = self._check_errors(json_response, doi_suffix)
+            LOG.error(f"DOI API request failed with code: {response.status_code}")
+            doi_data = self._check_errors(publish_resp, doi_suffix)
 
         return doi_data
 
-    def _check_errors(self, json_response: Dict, doi_suffix: str) -> Union[Dict, None]:
-        errors = json_response["errors"]
+    def _check_errors(self, response: Dict, doi_suffix: str) -> Union[Dict, None]:
+        errors_resp = response["errors"]
         doi_data = None
-        if len(errors) == 1:
-            error_msg = errors[0]["title"] if "title" in errors[0] else errors[0]["detail"]
-            if errors[0]["source"] == "doi" and error_msg == "This DOI has already been taken":
+        if len(errors_resp) == 1:
+            error_msg = errors_resp[0]["title"] if "title" in errors_resp[0] else errors_resp[0]["detail"]
+            if errors_resp[0]["source"] == "doi" and error_msg == "This DOI has already been taken":
                 LOG.info("DOI already taken, we will associate the submission to this doi dataset.")
                 doi_data = {
                     "suffix": doi_suffix,
                     "fullDOI": f"{self.doi_prefix}/{doi_suffix}",
                 }
             else:
-                LOG.error(f"Error occurred: {errors}")
+                LOG.error(f"Error occurred: {errors_resp}")
                 raise Exception(f"{error_msg}")
-        elif len(errors) > 1:
-            LOG.error(f"Errors occurred: {errors}")
-            raise Exception(f"Multiple errors occurred: {errors}")
+        elif len(errors_resp) > 1:
+            LOG.error(f"Multiple errors occurred: {errors_resp}")
+            raise Exception(f"Multiple errors occurred: {errors_resp}")
         return doi_data
