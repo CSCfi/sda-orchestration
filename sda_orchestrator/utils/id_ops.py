@@ -6,7 +6,6 @@ from uuid import uuid4
 from os import environ
 from datetime import date
 import shortuuid
-import re
 
 from .logger import LOG
 from ..config import CONFIG_INFO

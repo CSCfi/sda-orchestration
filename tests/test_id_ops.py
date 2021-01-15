@@ -16,12 +16,12 @@ class IDOpsCalled(unittest.TestCase):
     def test_map_simple_file(self):
         """Test if we can map a single file."""
         result = generate_dataset_id("user", "user/txt1.c4gh")
-        self.assertEqual("urn:default:user", result)
+        self.assertEqual("urn:neic:user", result)
 
     def test_map_simple_file_dir(self):
         """Test if dir scheme affects urn."""
         result = generate_dataset_id("user", "user/smth/smth2/txt9.c4gh")
-        self.assertEqual("urn:dir:smth", result)
+        self.assertEqual("urn:neic:user-smth", result)
 
     @patch(
         "sda_orchestrator.utils.id_ops.uuid4",
