@@ -13,7 +13,7 @@ def parse_config_file(config_file: str) -> Dict:
     """Load JSON schemas."""
     file_path = Path(config_file)
 
-    with open(str(file_path), "r") as fp:
+    with open(file_path, "r") as fp:
         return json.load(fp)
 
 
