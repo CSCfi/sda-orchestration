@@ -27,8 +27,7 @@ def generate_dataset_id(user: str, inbox_path: str, ns: Union[str, None] = None)
 
     # add trailing slash if it does not exist
     if ns.startswith(("http://", "https://")):
-        if ns[len(ns) - 1] != "/":
-            ns = ns + "/"
+        ns = ns.rstrip("/") + "/"
     # if a file it is submited in the root directory the dataset
     # is then ns:<username>
     # otherwise we take the root directory and construct the path
