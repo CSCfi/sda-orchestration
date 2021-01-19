@@ -235,13 +235,9 @@ class REMSHandler:
             "wfid": workflow_id,
             "organization": {"organization/id": self.config["organization"]["id"]},
             "localizations": {
-                "fi": {
-                    "title": f"Catalogue item for resource {resource_id}",
-                    "infourl": f"https://doi.org/{doi}",
-                },
                 "en": {
                     "title": f"Catalogue item for resource {resource_id}",
-                    "infourl": f"https://doi.org/{doi}",
+                    "infourl": f"{self.config['catalogueItem']['baseResourceURL']}{doi}",
                 },
             },
             "enabled": True,

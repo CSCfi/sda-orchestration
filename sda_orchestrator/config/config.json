@@ -94,6 +94,9 @@
         },
         "workflow": {
             "title": "Base workflow"
+        },
+        "catalogueItem": {
+            "baseResourceURL": "https://doi.org/"
         }
     },
     "datacite": {
