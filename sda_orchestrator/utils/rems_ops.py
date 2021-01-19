@@ -13,6 +13,12 @@ class REMSHandler:
 
     We will use the DOI of the dataset to create a resource in REMS,
     enable that resource. We will attach the resources as the catalogue item.
+
+    The main function is register resource, that registers resource in REMS under the doi
+    used to register at Datacite. We reuse existing resources if they exist.
+
+    The default config should be changed depending per installation, current config is NeIC
+    specific.
     """
 
     def __init__(self) -> None:
@@ -38,13 +44,23 @@ class REMSHandler:
 
         To make a resource accessible by a user one needs:
 
-        - a license and an organization (every object needs to belong to an organization)
-        - an organization needs name and short name
-        - a catalogue item is needed to make a resource findable
-        - a catalogue item needs form, resource, workflow and license
-        - a workflow needs to be of type default and required a form id, organization and title
-          and a list of users/handlers who can process applications
-        - a form requires organization, title and fields
+        - Every object in REMS needs to belong to an organisation, so have (at least) one.
+            - An organisation needs an internal id, a name and a short name.
+        - Every application has to be processed by a workflow, so have (at least) one.
+            - A workflow needs to have an organisation, title, type, and list of users
+              – handlers – who can process applications.
+            - Use default workflow type. Decider type is for e.g. governmental use only.
+            - Optionally a workflow can have a form, but generally it is not needed and should
+              only be used if absolutely required.
+        - Every application must have a form which an applicant can fill in
+            - A form must belong to an organisation, but is otherwise a free-form.
+        - Every dataset should have one or more licenses.
+            - A license needs to have an organisation, type, and a name. Depending on type, it may require more data.
+        - Every dataset is registered as a resource.
+            - A resource belongs to an organisation, must have an identifier, and should have one or more licenses.
+        - Every dataset is findable by a catalog item.
+            - A catalog item bundles all of the above together and is an object of interest to the applicants.
+            - A catalog item has 1-n mapping: every workflow, form and resource can belong to n catalog items.
         """
         try:
             await self._organization()
@@ -145,7 +161,7 @@ class REMSHandler:
         return license_id
 
     async def _workflow(self) -> int:
-        """Create base worflow if one does not exist."""
+        """Create base workflow if one does not exist."""
         workflow_exists = False
         workflow_id = 0
         workflow_payload = {
@@ -288,7 +304,7 @@ class REMSHandler:
     async def _enable_resource(self, resource_id: int) -> None:
         """Enable a resource in REMS so that it can be used.
 
-        This might not be required but good to keep arround if a use case presents.
+        This might not be required, but good to keep arround if a use case presents.
         """
         resource_payload = {"id": resource_id, "enabled": True}
         async with AsyncClient() as client:
