@@ -10,7 +10,7 @@ import shortuuid
 from .logger import LOG
 from ..config import CONFIG_INFO
 
-from httpx import Headers, AsyncClient
+from httpx import Headers, AsyncClient, Response, DecodingError
 
 
 def generate_dataset_id(user: str, inbox_path: str, ns: Union[str, None] = None) -> str:
@@ -91,10 +91,9 @@ class DOIHandler:
             response = await client.post(
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=draft_doi_payload, headers=headers
             )
-        draft_resp = response.json()
-
         doi_data = None
         if response.status_code == 200:
+            draft_resp = response.json()
             LOG.debug(f"DOI draft created and response was: {draft_resp}")
             LOG.info(f"DOI draft created with doi: {draft_resp['data']['attributes']['doi']}.")
             doi_data = {
@@ -102,7 +101,8 @@ class DOIHandler:
                 "fullDOI": draft_resp["data"]["attributes"]["doi"],
             }
         else:
-            doi_data = self._check_errors(draft_resp, doi_suffix)
+            LOG.error(f"DOI API create draft request failed with code: {response.status_code}")
+            doi_data = self._check_errors(response, doi_suffix)
 
         return doi_data
 
@@ -142,9 +142,9 @@ class DOIHandler:
             response = await client.post(
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=publish_data_payload, headers=headers
             )
-        publish_resp = response.json()
         doi_data = None
         if response.status_code == 200:
+            publish_resp = response.json()
             LOG.debug(f"DOI created with state: {state} and response was: {publish_resp}")
             LOG.info(f"DOI created with doi: {publish_resp['data']['attributes']['doi']} with state {state}.")
             doi_data = {
@@ -153,25 +153,33 @@ class DOIHandler:
             }
         else:
             LOG.error(f"DOI API request failed with code: {response.status_code}")
-            doi_data = self._check_errors(publish_resp, doi_suffix)
+            doi_data = self._check_errors(response, doi_suffix)
 
         return doi_data
 
-    def _check_errors(self, response: Dict, doi_suffix: str) -> Union[Dict, None]:
-        errors_resp = response["errors"]
-        doi_data = None
-        if len(errors_resp) == 1:
-            error_msg = errors_resp[0]["title"] if "title" in errors_resp[0] else errors_resp[0]["detail"]
-            if errors_resp[0]["source"] == "doi" and error_msg == "This DOI has already been taken":
-                LOG.info("DOI already taken, we will associate the submission to this doi dataset.")
-                doi_data = {
-                    "suffix": doi_suffix,
-                    "fullDOI": f"{self.doi_prefix}/{doi_suffix}",
-                }
-            else:
-                LOG.error(f"Error occurred: {errors_resp}")
-                raise Exception(f"{error_msg}")
-        elif len(errors_resp) > 1:
-            LOG.error(f"Multiple errors occurred: {errors_resp}")
-            raise Exception(f"Multiple errors occurred: {errors_resp}")
-        return doi_data
+    def _check_errors(self, response: Response, doi_suffix: str) -> Union[Dict, None]:
+        try:
+            errors_resp = response.json()["errors"]
+        except DecodingError:
+            LOG.error("Decoding JSON error response was not possible.")
+            raise
+        except Exception as e:
+            LOG.error(f"Unknown exception occured with content: {e}.")
+            raise
+        else:
+            doi_data = None
+            if len(errors_resp) == 1:
+                error_msg = errors_resp[0]["title"] if "title" in errors_resp[0] else errors_resp[0]["detail"]
+                if errors_resp[0]["source"] == "doi" and error_msg == "This DOI has already been taken":
+                    LOG.info("DOI already taken, we will associate the submission to this doi dataset.")
+                    doi_data = {
+                        "suffix": doi_suffix,
+                        "fullDOI": f"{self.doi_prefix}/{doi_suffix}",
+                    }
+                else:
+                    LOG.error(f"Error occurred: {errors_resp}")
+                    raise Exception(f"{error_msg}")
+            elif len(errors_resp) > 1:
+                LOG.error(f"Multiple errors occurred: {errors_resp}")
+                raise Exception(f"Multiple errors occurred: {errors_resp}")
+            return doi_data
