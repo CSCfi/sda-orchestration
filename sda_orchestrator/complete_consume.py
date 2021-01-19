@@ -1,12 +1,14 @@
 """Message Broker complete step consumer."""
 import json
+from sda_orchestrator.utils.rems_ops import REMSHandler
 from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
 from os import environ
-from .utils.id_ops import generate_dataset_id
+from .utils.id_ops import generate_dataset_id, DOIHandler
 from jsonschema.exceptions import ValidationError
 from .schemas.validate import ValidateJSON, load_schema
+import asyncio
 
 
 class CompleteConsumer(Consumer):
@@ -29,7 +31,7 @@ class CompleteConsumer(Consumer):
 
             # Send message to mappings queue for dataset to file mapping
             accessionID = complete_msg["accession_id"]
-            datasetID = generate_dataset_id(complete_msg["user"], complete_msg["filepath"])
+            datasetID = asyncio.run(self._process_datasetID(complete_msg["user"], complete_msg["filepath"]))
             self._publish_mappings(message, accessionID, datasetID)
 
         except ValidationError:
@@ -39,6 +41,32 @@ class CompleteConsumer(Consumer):
         except Exception as error:
             LOG.error(f"Error occurred in complete consumer: {error}.")
             raise
+
+    async def _process_datasetID(self, user: str, filepath: str) -> str:
+        """Process and generated dataset ID depending on environment variable set.
+
+        If we make use of Datacite and REMS we need to check if env vars are set.
+        """
+        datasetID: str = ""
+        try:
+            if (
+                "DOI_PREFIX" in environ and "DOI_API" in environ and "DOI_USER" in environ and "DOI_KEY" in environ
+            ) and ("REMS_API" in environ and "REMS_USER" in environ and "REMS_KEY" in environ):
+                doi_handler = DOIHandler()
+                rems = REMSHandler()
+                doi_obj = await doi_handler.create_draft_doi(user, filepath)
+                if doi_obj:
+                    rems.register_resource(doi_obj["fullDOI"])
+                else:
+                    LOG.error("Registering a DOI was not possible.")
+                    raise Exception("Registering a DOI was not possible.")
+            else:
+                datasetID = generate_dataset_id(user, filepath)
+        except Exception as error:
+            LOG.error(f"Could not process datasetID because of: {error}.")
+            raise
+        else:
+            return datasetID
 
     def _publish_mappings(self, message: Message, accessionID: str, datasetID: str) -> None:
         """Publish message with dataset to accession ID mapping."""
