@@ -57,7 +57,7 @@ class CompleteConsumer(Consumer):
                 doi_obj = await doi_handler.create_draft_doi(user, filepath)
                 LOG.info(f"Registered dataset {doi_obj}.")
                 if doi_obj:
-                    rems.register_resource(doi_obj["fullDOI"])
+                    await rems.register_resource(doi_obj["fullDOI"])
                 else:
                     LOG.error("Registering a DOI was not possible.")
                     raise Exception("Registering a DOI was not possible.")
