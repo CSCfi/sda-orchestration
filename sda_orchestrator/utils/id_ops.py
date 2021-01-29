@@ -91,7 +91,7 @@ class DOIHandler:
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=draft_doi_payload, headers=headers
             )
         doi_data = None
-        if response.status_code == 200:
+        if response.status_code == 201:
             draft_resp = response.json()
             LOG.debug(f"DOI draft created and response was: {draft_resp}")
             LOG.info(f"DOI draft created with doi: {draft_resp['data']['attributes']['doi']}.")
@@ -142,7 +142,7 @@ class DOIHandler:
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=publish_data_payload, headers=headers
             )
         doi_data = None
-        if response.status_code == 200:
+        if response.status_code == 201:
             publish_resp = response.json()
             LOG.debug(f"DOI created with state: {state} and response was: {publish_resp}")
             LOG.info(f"DOI created with doi: {publish_resp['data']['attributes']['doi']} with state {state}.")
