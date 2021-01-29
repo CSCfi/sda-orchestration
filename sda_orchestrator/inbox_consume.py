@@ -21,8 +21,8 @@ class InboxConsumer(Consumer):
             LOG.debug(f"MQ Message body: {message.body} .")
             LOG.debug(f"Inbox Consumer message received: {inbox_msg} .")
             LOG.info(
-                f"Received work (corr-id: {message.correlation_id} filepath: {inbox_msg['filepath']}, \
-                user: {inbox_msg['user']} with operation: {inbox_msg['operation']})",
+                f"Received work (corr-id: {message.correlation_id} filepath: {inbox_msg['filepath']},"
+                f"user: {inbox_msg['user']} with operation: {inbox_msg['operation']})",
             )
 
             if inbox_msg["operation"] == "upload":

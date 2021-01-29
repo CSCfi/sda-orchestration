@@ -21,9 +21,9 @@ class VerifyConsumer(Consumer):
             LOG.debug(f"MQ Message body: {message.body} .")
             LOG.debug(f"Verify Consumer message received: {verify_msg} .")
             LOG.info(
-                f"Received work (corr-id: {message.correlation_id} filepath: {verify_msg['filepath']}, \
-                user: {verify_msg['user']}, \
-                decryptedChecksums: {verify_msg['decrypted_checksums']})",
+                f"Received work (corr-id: {message.correlation_id} filepath: {verify_msg['filepath']},"
+                f"user: {verify_msg['user']},"
+                f"decryptedChecksums: {verify_msg['decrypted_checksums']})"
             )
 
             ValidateJSON(load_schema("ingestion-accession-request")).validate(verify_msg)
@@ -70,8 +70,8 @@ class VerifyConsumer(Consumer):
 
             channel.close()
             LOG.info(
-                f'Sent the message to accessionIDs queue to set accession ID for file {verify_msg["filepath"]} \
-                     with checksum {decrypted_checksum}.'
+                f"Sent the message to accessionIDs queue to set accession ID for file {verify_msg['filepath']}"
+                f"with checksum {decrypted_checksum}."
             )
 
         except ValidationError:

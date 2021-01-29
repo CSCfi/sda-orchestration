@@ -22,9 +22,9 @@ class CompleteConsumer(Consumer):
             LOG.debug(f"MQ Message body: {message.body} .")
             LOG.debug(f"Complete Consumer message received: {complete_msg} .")
             LOG.info(
-                f"Received work (corr-id: {message.correlation_id} filepath: {complete_msg['filepath']}, \
-                user: {complete_msg['user']}, accessionid: {complete_msg['accession_id']}, \
-                decryptedChecksums: {complete_msg['decrypted_checksums']})",
+                f"Received work (corr-id: {message.correlation_id} filepath: {complete_msg['filepath']},"
+                f"user: {complete_msg['user']}, accessionid: {complete_msg['accession_id']},"
+                f"decryptedChecksums: {complete_msg['decrypted_checksums']})"
             )
 
             ValidateJSON(load_schema("ingestion-completion")).validate(complete_msg)
@@ -55,6 +55,7 @@ class CompleteConsumer(Consumer):
                 doi_handler = DOIHandler()
                 rems = REMSHandler()
                 doi_obj = await doi_handler.create_draft_doi(user, filepath)
+                LOG.info(f"Registered dataset {doi_obj}.")
                 if doi_obj:
                     rems.register_resource(doi_obj["fullDOI"])
                 else:
@@ -90,8 +91,8 @@ class CompleteConsumer(Consumer):
             channel.close()
 
             LOG.info(
-                f"Sent the message to mappings queue to set dataset ID {datasetID} for file \
-                     with accessionID {accessionID}."
+                f"Sent the message to mappings queue to set dataset ID {datasetID} for file"
+                f"with accessionID {accessionID}."
             )
 
         except ValidationError:
