@@ -46,6 +46,8 @@ class CompleteConsumer(Consumer):
         """Process and generated dataset ID depending on environment variable set.
 
         If we make use of Datacite and REMS we need to check if env vars are set.
+        First we create a draft DOI then we register in REMS after which we publish
+        the DOI.
         """
         datasetID: str = ""
         try:
@@ -63,6 +65,7 @@ class CompleteConsumer(Consumer):
                     raise Exception("Registering a DOI was not possible.")
 
                 datasetID = doi_obj["fullDOI"]
+                await doi_handler.set_doi_state("publish", doi_obj["suffix"])
             else:
                 datasetID = generate_dataset_id(user, filepath)
         except Exception as error:
