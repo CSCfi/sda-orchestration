@@ -73,14 +73,14 @@ class REMSHandler:
         except Exception:
             raise
 
-    async def _process_create(self, resource: str, payload: dict) -> int:
+    async def _process_create(self, resource: str, payload: dict, resp_key: str = "id") -> int:
         """Process creation of a REMS resource endpoint in a similar fashion so that we can retrieve its id."""
         async with AsyncClient() as client:
             response = await client.post(f"{self.rems_api}/api/{resource}/create", json=payload, headers=self.headers)
         if response.status_code == 200:
             _resp = response.json()
             if isinstance(_resp["success"], bool) and _resp["success"]:
-                _id = _resp["id"]
+                _id = _resp[resp_key]
                 LOG.info(f"Created {resource} with id {_id}.")
             else:
                 LOG.error(f"Error occurred when creating {resource}.")
@@ -100,7 +100,7 @@ class REMSHandler:
         org_exists = False
         org = self.config["organization"]
         org_payload = {
-            "archive": False,
+            "archived": False,
             "enabled": True,
             "organization/id": org["id"],
             "organization/short-name": org["name"],
@@ -119,7 +119,7 @@ class REMSHandler:
             LOG.error(f"Retrieving organizations failed with HTTP status: {response.status_code}")
 
         if not org_exists:
-            await self._process_create("organizations", org_payload)
+            await self._process_create("organizations", org_payload, "organization/id")
 
     async def _license(self) -> int:
         """Get or create license if one does not exist.
