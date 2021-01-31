@@ -61,6 +61,8 @@ class CompleteConsumer(Consumer):
                 else:
                     LOG.error("Registering a DOI was not possible.")
                     raise Exception("Registering a DOI was not possible.")
+
+                datasetID = doi_obj["fullDOI"]
             else:
                 datasetID = generate_dataset_id(user, filepath)
         except Exception as error:
