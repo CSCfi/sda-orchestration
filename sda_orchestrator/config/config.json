@@ -1,0 +1,127 @@
+{
+    "rems": {
+        "organization": {
+            "id": "NeIC",
+            "name": {
+                "fi": "Nordic e-Infrastructure Collaboration",
+                "en": "Nordic e-Infrastructure Collaboration"
+            },
+            "shortName": {
+                "fi": "NeIC",
+                "en": "NeIC"
+            }
+        },
+        "license": {
+            "localizations": {
+                "en": {
+                    "title": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+                    "textcontent": "https://creativecommons.org/licenses/by/4.0/"
+                },
+                "fi": {
+                    "title": "Nimeä 4.0 Kansainvälinen (CC BY 4.0)",
+                    "textcontent": "https://creativecommons.org/licenses/by/4.0/deed.fi"
+                }
+            }
+        },
+        "form": {
+            "title": "Base form",
+            "fields": [
+                {
+                    "field/id": "fld1",
+                    "field/type": "header",
+                    "field/title": {
+                        "en": "Base form for registering a resource",
+                        "fi": "Base form for registering a resource"
+                    },
+                    "field/optional": false
+                },
+                {
+                    "field/id": "fld2",
+                    "field/type": "description",
+                    "field/title": {
+                        "en": "Title of the application",
+                        "fi": "Title of the application"
+                    },
+                    "field/optional": true,
+                    "field/max-length": 100
+                },
+                {
+                    "field/id": "fld3",
+                    "field/type": "option",
+                    "field/title": {
+                        "en": "Select type of submision",
+                        "fi": "Select type of submision"
+                    },
+                    "field/options": [
+                        {
+                            "key": "fega",
+                            "label": {
+                                "en": "FEGA (Federated EGA)",
+                                "fi": "FEGA (Federated EGA)"
+                            }
+                        },
+                        {
+                            "key": "sda",
+                            "label": {
+                                "en": "SDA stand-alone",
+                                "fi": "SDA stand-alone"
+                            }
+                        }
+                    ],
+                    "field/optional": false
+                },
+                {
+                    "field/id": "fld4",
+                    "field/type": "texta",
+                    "field/title": {
+                        "en": "Stand-alone SDA archive use case description",
+                        "fi": "Stand-alone SDA archive use case description"
+                    },
+                    "field/privacy": "private",
+                    "field/optional": false,
+                    "field/max-length": 200,
+                    "field/visibility": {
+                        "visibility/type": "only-if",
+                        "visibility/field": {
+                            "field/id": "fld3"
+                        },
+                        "visibility/values": [
+                            "sda"
+                        ]
+                    }
+                }
+            ]
+        },
+        "workflow": {
+            "title": "Base workflow"
+        },
+        "catalogueItem": {
+            "baseResourceURL": "https://doi.org/"
+        }
+    },
+    "datacite": {
+        "creators": [
+            {
+                "name": "Nordic e-Infrastructure Collaboration",
+                "nameType": "Organizational",
+                "affiliation": [
+                    {
+                        "name": "Nordic e-Infrastructure Collaboration",
+                        "schemeUri": "https://ror.org",
+                        "affiliationIdentifier": "https://ror.org/04jcwf484",
+                        "affiliationIdentifierScheme": "ROR"
+                    }
+                ]
+            }
+        ],
+        "publisher": "Nordic e-Infrastructure Collaboration",
+        "subjects": [
+            {
+                "subject": "FOS: Biological sciences",
+                "subjectScheme": "Fields of Science and Technology (FOS)"
+            }
+        ],
+        "resourceURL": "http://data-access.sd.neic.no",
+        "titlePrefix": "Resource"
+    }
+}

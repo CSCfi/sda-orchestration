@@ -1,2 +1,4 @@
 amqpstorm
 jsonschema
+httpx
+shortuuid

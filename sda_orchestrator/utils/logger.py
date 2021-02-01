@@ -1,7 +1,7 @@
 """Logging formatting."""
 
 import logging
-import os
+from os import environ
 
 # Keeping it simple with the logging formatting
 
@@ -11,5 +11,5 @@ FORMAT = (
 logging.basicConfig(format=FORMAT, datefmt="%Y-%m-%d %H:%M:%S")
 LOG = logging.getLogger("sda_orchestrator")
 # By default the logging level would be INFO
-log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+log_level = environ.get("LOG_LEVEL", "INFO").upper()
 LOG.setLevel(log_level)

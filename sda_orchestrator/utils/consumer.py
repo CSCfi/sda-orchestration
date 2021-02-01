@@ -1,7 +1,7 @@
 """Message Broker Consumer class."""
 
 import time
-import os
+from os import environ
 import json
 import ssl
 from pathlib import Path
@@ -37,12 +37,12 @@ class Consumer:
         self.vhost = vhost
         self.max_retries = max_retries
         self.connection = None
-        self.ssl = bool(strtobool(os.environ.get("BROKER_SSL", "True")))
+        self.ssl = bool(strtobool(environ.get("BROKER_SSL", "True")))
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.check_hostname = False
-        cacertfile = Path(f"{os.environ.get('SSL_CACERT', '/tls/certs/ca.crt')}")
-        certfile = Path(f"{os.environ.get('SSL_CLIENTCERT', '/tls/certs/orch.crt')}")
-        keyfile = Path(f"{os.environ.get('SSL_CLIENTKEY', '/tls/certs/orch.key')}")
+        cacertfile = Path(environ.get("SSL_CACERT", "/tls/certs/ca.crt"))
+        certfile = Path(environ.get("SSL_CLIENTCERT", "/tls/certs/orch.crt"))
+        keyfile = Path(environ.get("SSL_CLIENTKEY", "/tls/certs/orch.key"))
         context.verify_mode = ssl.CERT_NONE
         # Require server verification
         if cacertfile.exists():
@@ -131,7 +131,7 @@ class Consumer:
         ValidateJSON(load_schema("ingestion-user-error")).validate(json.loads(error_msg))
 
         error = Message.create(channel, error_msg, properties)
-        error.publish(os.environ.get("ERROR_QUEUE", "error"), exchange=os.environ.get("BROKER_EXCHANGE", "sda"))
+        error.publish(environ.get("ERROR_QUEUE", "error"), exchange=environ.get("BROKER_EXCHANGE", "sda"))
 
         channel.close()
 

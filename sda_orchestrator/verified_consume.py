@@ -4,7 +4,7 @@ from typing import Dict
 from amqpstorm import Message
 from .utils.consumer import Consumer
 from .utils.logger import LOG
-import os
+from os import environ
 from .utils.id_ops import generate_accession_id
 from jsonschema.exceptions import ValidationError
 from .schemas.validate import ValidateJSON, load_schema
@@ -21,9 +21,9 @@ class VerifyConsumer(Consumer):
             LOG.debug(f"MQ Message body: {message.body} .")
             LOG.debug(f"Verify Consumer message received: {verify_msg} .")
             LOG.info(
-                f"Received work (corr-id: {message.correlation_id} filepath: {verify_msg['filepath']}, \
-                user: {verify_msg['user']}, \
-                decryptedChecksums: {verify_msg['decrypted_checksums']})",
+                f"Received work (corr-id: {message.correlation_id} filepath: {verify_msg['filepath']},"
+                f"user: {verify_msg['user']},"
+                f"decryptedChecksums: {verify_msg['decrypted_checksums']})"
             )
 
             ValidateJSON(load_schema("ingestion-accession-request")).validate(verify_msg)
@@ -65,13 +65,13 @@ class VerifyConsumer(Consumer):
             checksum_data = list(filter(lambda x: x["type"] == "sha256", verify_msg["decrypted_checksums"]))
             decrypted_checksum = checksum_data[0]["value"]
             accession.publish(
-                os.environ.get("ACCESSIONIDS_QUEUE", "accessionIDs"), exchange=os.environ.get("BROKER_EXCHANGE", "sda")
+                environ.get("ACCESSIONIDS_QUEUE", "accessionIDs"), exchange=environ.get("BROKER_EXCHANGE", "sda")
             )
 
             channel.close()
             LOG.info(
-                f'Sent the message to accessionIDs queue to set accession ID for file {verify_msg["filepath"]} \
-                     with checksum {decrypted_checksum}.'
+                f"Sent the message to accessionIDs queue to set accession ID for file {verify_msg['filepath']}"
+                f"with checksum {decrypted_checksum}."
             )
 
         except ValidationError:
@@ -82,12 +82,12 @@ class VerifyConsumer(Consumer):
 def main() -> None:
     """Run the Verify consumer."""
     CONSUMER = VerifyConsumer(
-        hostname=str(os.environ.get("BROKER_HOST")),
-        port=int(os.environ.get("BROKER_PORT", 5670)),
-        username=os.environ.get("BROKER_USER", "sda"),
-        password=os.environ.get("BROKER_PASSWORD", ""),
-        queue=os.environ.get("VERIFIED_QUEUE", "verified"),
-        vhost=os.environ.get("BROKER_VHOST", "sda"),
+        hostname=str(environ.get("BROKER_HOST")),
+        port=int(environ.get("BROKER_PORT", 5670)),
+        username=environ.get("BROKER_USER", "sda"),
+        password=environ.get("BROKER_PASSWORD", ""),
+        queue=environ.get("VERIFIED_QUEUE", "verified"),
+        vhost=environ.get("BROKER_VHOST", "sda"),
     )
     CONSUMER.start()
 
