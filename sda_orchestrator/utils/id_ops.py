@@ -118,7 +118,7 @@ class DOIHandler:
                 "attributes": {
                     "event": state,
                     "doi": f"{self.doi_prefix}/{doi_suffix}",
-                    "titles": [{"title": f"{CONFIG_INFO['datacite']['titlePrefix']}", "lang": "en"}],
+                    "titles": [{"title": f"{CONFIG_INFO['datacite']['titlePrefix']} {doi_suffix}", "lang": "en"}],
                     "publisher": CONFIG_INFO["datacite"]["publisher"],
                     # will be current year
                     "publicationYear": date.today().year,

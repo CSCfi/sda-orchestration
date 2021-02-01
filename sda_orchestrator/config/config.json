@@ -121,6 +121,7 @@
                 "subjectScheme": "Fields of Science and Technology (FOS)"
             }
         ],
-        "resourceURL": "http://data-access.sd.neic.no"
+        "resourceURL": "http://data-access.sd.neic.no",
+        "titlePrefix": "Resource"
     }
 }
