@@ -236,7 +236,7 @@ class REMSHandler:
             "organization": {"organization/id": self.config["organization"]["id"]},
             "localizations": {
                 "en": {
-                    "title": f"Catalogue item for resource {resource_id}",
+                    "title": f"Catalogue item for resource {doi}",
                     "infourl": f"{self.config['catalogueItem']['baseResourceURL']}{doi}",
                 },
             },
