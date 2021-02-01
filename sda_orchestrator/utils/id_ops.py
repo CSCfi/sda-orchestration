@@ -63,8 +63,8 @@ class DOIHandler:
     ``create_draft_doi`` generates the identifier using a 10 chars shortuuid from, which guarantee
     uniqueness based on the way we generate the dataset ID.
 
-    The ``set_doi_state`` can also be used to create a draft DOI, however its use is dependent on generating
-    a doi_suffix externally.
+    The ``set_doi_state`` is dependent on generating a doi_suffix as draft.
+    We do this if errors ocurr in registering the resource in REMS
     """
 
     def __init__(self) -> None:
@@ -120,6 +120,7 @@ class DOIHandler:
                     "doi": f"{self.doi_prefix}/{doi_suffix}",
                     "titles": [{"title": f"{CONFIG_INFO['datacite']['titlePrefix']} {doi_suffix}", "lang": "en"}],
                     "publisher": CONFIG_INFO["datacite"]["publisher"],
+                    "creators": CONFIG_INFO["datacite"]["creators"],
                     # will be current year
                     "publicationYear": date.today().year,
                     # resource type is predefined as dataset
@@ -138,11 +139,14 @@ class DOIHandler:
         }
         headers = Headers({"Content-Type": "application/json"})
         async with AsyncClient() as client:
-            response = await client.post(
-                self.doi_api, auth=(self.doi_user, self.doi_key), json=publish_data_payload, headers=headers
+            response = await client.put(
+                f"{self.doi_api}/{self.doi_prefix}/{doi_suffix}",
+                auth=(self.doi_user, self.doi_key),
+                json=publish_data_payload,
+                headers=headers,
             )
         doi_data = None
-        if response.status_code == 201:
+        if response.status_code == 200:
             publish_resp = response.json()
             LOG.debug(f"DOI created with state: {state} and response was: {publish_resp}")
             LOG.info(f"DOI created with doi: {publish_resp['data']['attributes']['doi']} with state {state}.")
