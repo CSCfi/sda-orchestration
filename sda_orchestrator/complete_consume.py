@@ -59,12 +59,12 @@ class CompleteConsumer(Consumer):
                 doi_obj = await doi_handler.create_draft_doi(user, filepath)
                 LOG.info(f"Registered dataset {doi_obj}.")
                 if doi_obj:
-                    await rems.register_resource(doi_obj["fullDOI"])
+                    await rems.register_resource(doi_obj["dataset"])
                 else:
                     LOG.error("Registering a DOI was not possible.")
                     raise Exception("Registering a DOI was not possible.")
 
-                datasetID = doi_obj["fullDOI"]
+                datasetID = doi_obj["dataset"]
                 await doi_handler.set_doi_state("publish", doi_obj["suffix"])
             else:
                 datasetID = generate_dataset_id(user, filepath)

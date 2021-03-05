@@ -14,7 +14,7 @@ from httpx import Headers, AsyncClient, Response, DecodingError
 
 
 def generate_dataset_id(user: str, inbox_path: str, ns: Union[str, None] = None) -> str:
-    """Map accession ID to dataset.
+    """Generate accession ID for dataset.
 
     Generate dataset id based on folder or user.
     We keep the email domain as users might have same name on different domains
@@ -73,7 +73,7 @@ class DOIHandler:
         self.doi_api = environ.get("DOI_API", "")
         self.doi_user = environ.get("DOI_USER", "")
         self.doi_key = environ.get("DOI_KEY", "")
-        self.ns_url = f"https://doi.org/{self.doi_prefix}"
+        self.ns_url = f"{CONFIG_INFO['datacite']['url'].rstrip('/')}/{self.doi_prefix}"
 
     async def create_draft_doi(self, user: str, inbox_path: str) -> Union[Dict, None]:
         """Create an auto-generated draft DOI.
@@ -93,11 +93,14 @@ class DOIHandler:
         doi_data = None
         if response.status_code == 201:
             draft_resp = response.json()
+            _doi = draft_resp["data"]["attributes"]["doi"]
+            _suffix = draft_resp["data"]["attributes"]["suffix"]
             LOG.debug(f"DOI draft created and response was: {draft_resp}")
-            LOG.info(f"DOI draft created with doi: {draft_resp['data']['attributes']['doi']}.")
+            LOG.info(f"DOI draft created with doi: {_doi}.")
             doi_data = {
-                "suffix": draft_resp["data"]["attributes"]["suffix"],
-                "fullDOI": draft_resp["data"]["attributes"]["doi"],
+                "suffix": _suffix,
+                "fullDOI": _doi,
+                "dataset": f"{self.ns_url}/{_suffix.lower()}",
             }
         else:
             LOG.error(f"DOI API create draft request failed with code: {response.status_code}")
@@ -148,11 +151,14 @@ class DOIHandler:
         doi_data = None
         if response.status_code == 200:
             publish_resp = response.json()
+            _doi = publish_resp["data"]["attributes"]["doi"]
+            _suffix = publish_resp["data"]["attributes"]["suffix"]
             LOG.debug(f"DOI created with state: {state} and response was: {publish_resp}")
-            LOG.info(f"DOI created with doi: {publish_resp['data']['attributes']['doi']} with state {state}.")
+            LOG.info(f"DOI created: {_doi} with state: {state}.")
             doi_data = {
-                "suffix": publish_resp["data"]["attributes"]["suffix"],
-                "fullDOI": publish_resp["data"]["attributes"]["doi"],
+                "suffix": _suffix,
+                "fullDOI": _doi,
+                "dataset": f"{self.ns_url}/{_suffix.lower()}",
             }
         else:
             LOG.error(f"DOI API request failed with code: {response.status_code}")
@@ -178,6 +184,7 @@ class DOIHandler:
                     doi_data = {
                         "suffix": doi_suffix,
                         "fullDOI": f"{self.doi_prefix}/{doi_suffix}",
+                        "dataset": f"{self.ns_url}/{doi_suffix.lower()}",
                     }
                 else:
                     LOG.error(f"Error occurred: {errors_resp}")

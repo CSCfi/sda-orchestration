@@ -122,6 +122,7 @@
             }
         ],
         "resourceURL": "http://data-access.sd.neic.no",
-        "titlePrefix": "Resource"
+        "titlePrefix": "Resource",
+        "url": "https://doi.org"
     }
 }
