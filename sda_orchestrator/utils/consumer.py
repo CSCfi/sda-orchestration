@@ -38,7 +38,7 @@ class Consumer:
         self.max_retries = max_retries
         self.connection = None
         self.ssl = bool(strtobool(environ.get("BROKER_SSL", "True")))
-        context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
+        context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_1)
         context.check_hostname = False
         cacertfile = Path(environ.get("SSL_CACERT", "/tls/certs/ca.crt"))
         certfile = Path(environ.get("SSL_CLIENTCERT", "/tls/certs/orch.crt"))
