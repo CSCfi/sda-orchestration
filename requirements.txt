@@ -1,4 +1,4 @@
-amqpstorm
-jsonschema
-httpx
-shortuuid
+amqpstorm==2.8.3
+jsonschema==3.2.0
+httpx==0.17.1
+shortuuid==1.0.1
