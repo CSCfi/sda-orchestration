@@ -237,7 +237,7 @@ class REMSHandler:
             "localizations": {
                 "en": {
                     "title": f"Catalogue item for resource {doi}",
-                    "infourl": f"{self.config['catalogueItem']['baseResourceURL']}{doi}",
+                    "infourl": doi,
                 },
             },
             "enabled": True,
