@@ -10,7 +10,10 @@ import shortuuid
 from .logger import LOG
 from ..config import CONFIG_INFO
 
-from httpx import Headers, AsyncClient, Response, DecodingError
+from httpx import Headers, AsyncClient, Response, DecodingError, AsyncHTTPTransport, Timeout
+
+_transport = AsyncHTTPTransport(retries=3)
+_timeout = Timeout(30.0, connect=60.0)
 
 
 def generate_dataset_id(user: str, inbox_path: str, ns: Union[str, None] = None) -> str:
@@ -86,7 +89,7 @@ class DOIHandler:
 
         headers = Headers({"Content-Type": "application/json"})
         draft_doi_payload = {"data": {"type": "dois", "attributes": {"doi": f"{self.doi_prefix}/{doi_suffix}"}}}
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.post(
                 self.doi_api, auth=(self.doi_user, self.doi_key), json=draft_doi_payload, headers=headers
             )
@@ -141,7 +144,7 @@ class DOIHandler:
             }
         }
         headers = Headers({"Content-Type": "application/json"})
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.put(
                 f"{self.doi_api}/{self.doi_prefix}/{doi_suffix}",
                 auth=(self.doi_user, self.doi_key),

@@ -5,7 +5,10 @@ from .logger import LOG
 
 from ..config import CONFIG_INFO
 
-from httpx import Headers, AsyncClient
+from httpx import Headers, AsyncClient, AsyncHTTPTransport, Timeout
+
+_transport = AsyncHTTPTransport(retries=3)
+_timeout = Timeout(30.0, connect=60.0)
 
 
 class REMSHandler:
@@ -108,7 +111,7 @@ class REMSHandler:
             "organization/owners": [{"userid": self.rems_user}],
         }
 
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(f"{self.rems_api}/api/organizations/{org['id']}", headers=self.headers)
         if response.status_code == 200:
             org_resp = response.json()
@@ -135,7 +138,7 @@ class REMSHandler:
             "localizations": self.config["license"]["localizations"],
         }
 
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(
                 f"{self.rems_api}/api/licenses",
                 headers=self.headers,
@@ -171,7 +174,7 @@ class REMSHandler:
             "handlers": [self.rems_user],
         }
 
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(
                 f"{self.rems_api}/api/workflows",
                 headers=self.headers,
@@ -204,7 +207,7 @@ class REMSHandler:
             "form/fields": self.config["form"]["fields"],
         }
 
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(
                 f"{self.rems_api}/api/forms",
                 headers=self.headers,
@@ -244,7 +247,7 @@ class REMSHandler:
             "archived": False,
         }
 
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(
                 f"{self.rems_api}/api/catalogue-items",
                 headers=self.headers,
@@ -275,7 +278,7 @@ class REMSHandler:
             "licenses": [license_id],
         }
 
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(
                 f"{self.rems_api}/api/resources",
                 headers=self.headers,
@@ -303,7 +306,7 @@ class REMSHandler:
         This might not be required, but good to keep arround if a use case presents.
         """
         resource_payload = {"id": resource_id, "enabled": True}
-        async with AsyncClient() as client:
+        async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.put(
                 f"{self.rems_api}/api/resources/enabled", json=resource_payload, headers=self.headers
             )
