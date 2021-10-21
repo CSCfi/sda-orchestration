@@ -146,11 +146,11 @@ class Consumer:
             self.handle_message(message)
         except (ValidationError, Exception) as error:
             try:
-                self._error_message(message, f"Exception occurred: {str(error)}")
+                self._error_message(message, str(error))
             except ValidationError:
                 LOG.error("Could not validate the error message. Not properly formatted.")
             except Exception as error:
-                LOG.error(f"Exception occurred: {error}")
+                LOG.error(error)
             finally:
                 message.reject(requeue=False)
         else:

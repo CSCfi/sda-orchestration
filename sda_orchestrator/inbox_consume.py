@@ -27,22 +27,27 @@ class InboxConsumer(Consumer):
 
             if inbox_msg["operation"] == "upload":
                 ValidateJSON(load_schema("inbox-upload")).validate(inbox_msg)
+                # we check if this is a path with a suffix or a name
+                test_path = Path(inbox_msg["filepath"])
+                if test_path.suffix == "" or test_path.name in ["", ".", ".."]:
+                    LOG.error(f"file: {test_path} does not appear to be a correct path.")
+                    raise FileNotFoundError
+
+                # Create the files message.
+                # we keep the encrypted_checksum but it can also be missing
+                self._publish_ingest(message, inbox_msg)
             elif inbox_msg["operation"] == "rename":
                 ValidateJSON(load_schema("inbox-rename")).validate(inbox_msg)
+                message.reject(requeue=False)
+                pass
             elif inbox_msg["operation"] == "remove":
                 ValidateJSON(load_schema("inbox-remove")).validate(inbox_msg)
+                message.reject(requeue=False)
+                pass
             else:
                 LOG.error("Un-identified inbox operation.")
-
-            # we check if this is a path with a suffix or a name
-            test_path = Path(inbox_msg["filepath"])
-            if test_path.suffix == "" or test_path.name in ["", ".", ".."]:
-                LOG.error(f"file: {test_path} does not appear to be a correct path.")
-                raise FileNotFoundError
-
-            # Create the files message.
-            # we keep the encrypted_checksum but it can also be missing
-            self._publish_ingest(message, inbox_msg)
+                message.reject(requeue=False)
+                pass
 
         except ValidationError:
             LOG.error("Could not validate the inbox message. Not properly formatted.")
