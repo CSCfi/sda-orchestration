@@ -89,8 +89,8 @@ class REMSHandler:
                 LOG.error(f"Error occurred when creating {resource}.")
                 raise Exception(f"Error occurred when creating {resource}.")
         else:
-            LOG.error(f"Error occurred when creating {resource} got HTTP status: {response.status_code}")
-            raise Exception(f"Error occurred when creating {resource} got HTTP status: {response.status_code}")
+            LOG.error(f"Error occurred when creating {resource} got HTTP status: {str(response.status_code)}")
+            raise Exception(f"Error occurred when creating {resource} got HTTP status: {str(response.status_code)}")
 
         return _id
 
