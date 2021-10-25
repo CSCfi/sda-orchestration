@@ -86,6 +86,7 @@ class REMSHandler:
                 _id = _resp[resp_key]
                 LOG.info(f"Created {resource} with id {_id}.")
             else:
+                LOG.debug(_resp)
                 LOG.error(f"Error occurred when creating {resource}.")
                 raise Exception(f"Error occurred when creating {resource}.")
         else:

@@ -38,15 +38,12 @@ class InboxConsumer(Consumer):
                 self._publish_ingest(message, inbox_msg)
             elif inbox_msg["operation"] == "rename":
                 ValidateJSON(load_schema("inbox-rename")).validate(inbox_msg)
-                message.reject(requeue=False)
                 pass
             elif inbox_msg["operation"] == "remove":
                 ValidateJSON(load_schema("inbox-remove")).validate(inbox_msg)
-                message.reject(requeue=False)
                 pass
             else:
                 LOG.error("Un-identified inbox operation.")
-                message.reject(requeue=False)
                 pass
 
         except ValidationError:
