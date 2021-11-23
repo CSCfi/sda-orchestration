@@ -247,23 +247,28 @@ class REMSHandler:
             "enabled": True,
             "archived": False,
         }
-
+        params = {"resource": doi}
         async with AsyncClient(transport=_transport, timeout=_timeout) as client:
             response = await client.get(
                 f"{self.rems_api}/api/catalogue-items",
                 headers=self.headers,
+                params=params,
             )
         if response.status_code == 200:
             item_resp = response.json()
-            for item in item_resp:
-                if (
-                    item["organization"]["organization/id"] == self.config["organization"]["id"]
-                    and item["wfid"] == workflow_id
-                    and item["resid"] == doi
-                    and item["formid"] == form_id
-                ):
-                    item_exists = True
-                    LOG.info(f"Catalogue Item for resource with DOI {doi} exists with id {item['id']}.")
+            # if there are no catalogue items for the resource either it does not exist
+            # or if we are expecting it to exist, we are experience race condition
+            if len(item_resp) > 0:
+                LOG.debug(f"Catalogue Item for resource with DOI {doi} does not exists,")
+                for item in item_resp:
+                    if (
+                        item["organization"]["organization/id"] == self.config["organization"]["id"]
+                        and item["wfid"] == workflow_id
+                        and item["resid"] == doi
+                        and item["formid"] == form_id
+                    ):
+                        item_exists = True
+                        LOG.info(f"Catalogue Item for resource with DOI {doi} exists with id {item['id']}.")
         else:
             LOG.error(f"Retrieving catalogue items failed with HTTP status: {response.status_code}")
         if not item_exists:
