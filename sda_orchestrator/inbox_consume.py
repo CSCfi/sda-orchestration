@@ -29,7 +29,7 @@ class InboxConsumer(Consumer):
                 ValidateJSON(load_schema("inbox-upload")).validate(inbox_msg)
                 # we check if this is a path with a suffix or a name
                 test_path = Path(inbox_msg["filepath"])
-                if test_path.suffix == "" or test_path.name in ["", ".", ".."]:
+                if test_path.name in ["", ".", ".."]:
                     LOG.error(f"file: {test_path} does not appear to be a correct path.")
                     raise FileNotFoundError
 

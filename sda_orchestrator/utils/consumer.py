@@ -118,7 +118,11 @@ class Consumer:
         }
         original_message = json.loads(message.body)
 
-        error_trigger = {"user": original_message["user"], "filepath": original_message["filepath"], "reason": reason}
+        error_trigger = {
+            "user": original_message["user"],
+            "filepath": original_message["filepath"],
+            "reason": str(reason),
+        }
 
         if "encrypted_checksums" in original_message:
             error_trigger["encrypted_checksums"] = original_message["encrypted_checksums"]
@@ -137,7 +141,7 @@ class Consumer:
 
         LOG.info(
             f"Published error message (corr-id: {message.correlation_id} filepath: {original_message['filepath']}, ",
-            f"user: {original_message['user']}, with reason: {reason})",
+            f"user: {original_message['user']}, with reason: {str(reason)})",
         )
 
     def __call__(self, message: Message) -> None:
