@@ -1,9 +1,9 @@
 """Validate JSON module with Draft7Validator."""
 
 import json
-from jsonschema import Draft7Validator, validators
+from jsonschema import Draft7Validator, validators, Validator
 
-from typing import Any, Dict, Generator
+from typing import Dict, Generator
 from pathlib import Path
 from ..utils.logger import LOG
 
@@ -27,7 +27,7 @@ def extend_with_default(validator_class: Draft7Validator) -> Draft7Validator:
     """Include default values present in JSON Schema."""
     validate_properties = validator_class.VALIDATORS["properties"]
 
-    def set_defaults(validator: Draft7Validator, properties: Dict, instance: Any, schema: str) -> Generator:
+    def set_defaults(validator: Draft7Validator, properties: Dict, instance: Validator, schema: str) -> Generator:
         """Set defaults in validator."""
         for property, subschema in properties.items():
             if "default" in subschema:
