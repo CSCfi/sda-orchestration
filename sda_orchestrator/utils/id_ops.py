@@ -106,6 +106,7 @@ class DOIHandler:
                 "dataset": f"{self.ns_url}/{_suffix.lower()}",
             }
         else:
+            LOG.debug(f"DOI draft created and response was: {response}")
             LOG.error(f"DOI API create draft request failed with code: {response.status_code}")
             doi_data = self._check_errors(response, doi_suffix)
 
@@ -182,7 +183,7 @@ class DOIHandler:
             doi_data = None
             if len(errors_resp) == 1:
                 error_msg = errors_resp[0]["title"] if "title" in errors_resp[0] else errors_resp[0]["detail"]
-                if errors_resp[0]["source"] == "doi" and error_msg == "This DOI has already been taken":
+                if "source" in errors_resp[0] and error_msg == "This DOI has already been taken":
                     LOG.info("DOI already taken, we will associate the submission to this doi dataset.")
                     doi_data = {
                         "suffix": doi_suffix,
