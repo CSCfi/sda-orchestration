@@ -10,4 +10,4 @@ https://github.com/neicnordic/sda-pipeline services.
 ### Kubernetes deployment
 
 Recomended deployment: 
-- helm charts: https://github.com/neicnordic/sda-helm/tree/master/sda-orch
+- helm charts: https://github.com/neicnordic/sda-helm/tree/master/charts/sda-orch
