@@ -83,7 +83,6 @@ class CompleteConsumer(Consumer):
             "delivery_mode": 2,
         }
         try:
-
             channel = self.connection.channel()  # type: ignore
             mappings_trigger = {"type": "mapping", "dataset_id": datasetID, "accession_ids": [accessionID]}
 
