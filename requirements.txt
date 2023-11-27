@@ -1,4 +1,4 @@
-amqpstorm==2.10.6
+amqpstorm==2.10.7
 jsonschema==4.20.0
 httpx==0.25.1
 shortuuid==1.0.11
