@@ -1,4 +1,4 @@
-FROM python:3.9-alpine3.17 as BUILD
+FROM python:3.11-alpine3.18 as BUILD
 
 RUN apk add --no-cache git gcc musl-dev libffi-dev make gnupg && \
     rm -rf /var/cache/apk/*
@@ -11,14 +11,14 @@ RUN pip install --upgrade pip && \
     pip install -r /root/sdaorch/requirements.txt && \
     pip install /root/sdaorch
 
-FROM python:3.9-alpine3.17
+FROM python:3.11-alpine3.18
 
 LABEL maintainer "NeIC System Developers"
 LABEL org.label-schema.schema-version="1.0"
 
 RUN apk add --no-cache --update supervisor
 
-COPY --from=BUILD /usr/local/lib/python3.9/ usr/local/lib/python3.9/
+COPY --from=BUILD /usr/local/lib/python3.11/ usr/local/lib/python3.11/
 
 COPY --from=BUILD /usr/local/bin/sdainbox /usr/local/bin/
 

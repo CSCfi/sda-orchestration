@@ -43,8 +43,7 @@ setup(
         "Intended Audience :: Information Technology",
         # Pick your license as you wish
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.11",
     ],
     install_requires=["amqpstorm", "jsonschema", "httpx", "shortuuid"],
     extras_require={
