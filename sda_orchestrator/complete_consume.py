@@ -1,4 +1,5 @@
 """Message Broker complete step consumer."""
+
 import json
 from sda_orchestrator.utils.rems_ops import REMSHandler
 from amqpstorm import Message
