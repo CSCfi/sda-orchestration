@@ -1,4 +1,5 @@
 """Message Broker inbox step consumer."""
+
 import json
 from typing import Dict
 from amqpstorm import Message
